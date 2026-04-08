@@ -8,26 +8,29 @@ except ImportError:
     from server.incident_rca_env_environment import IncidentRCAEnvironment
 
 
-app = create_app(
-    IncidentRCAEnvironment,
-    ActionModel,
-    ObservationModel,
-    env_name="incident_rca_env",
-    max_concurrent_envs=1,
-)
-
-@app.get("/")
-def root():
-    return {"status": "running"}
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
 def main():
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    app = create_app(
+        IncidentRCAEnvironment,
+        ActionModel,
+        ObservationModel,
+        env_name="incident_rca_env",
+        max_concurrent_envs=1,
+    )
+
+    @app.get("/")
+    def root():
+        return {"status": "running"}
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
+
+    return app
+
+
+app = main()
 
 
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
