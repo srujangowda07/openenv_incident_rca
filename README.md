@@ -6,18 +6,19 @@ app_port: 8000
 
 # IncidentRCAEnv
 
-**OpenEnv-compliant environment for training AI agents to perform incident response and root cause analysis on production microservice systems.**
+OpenEnv-compliant RL environment for training and evaluating agents on incident response and root cause analysis in production-like microservice systems.
 
-Built for the Meta × Hugging Face × PyTorch OpenEnv Hackathon 2026.
+Built for the Meta x Hugging Face x PyTorch OpenEnv Hackathon 2026.
 
-Try it live: https://srujan0001-incident-rca-env.hf.space/docs
+IncidentRCAEnv simulates realistic outage investigation with logs, metrics, traces, and service dependencies under partial observability.
+It matters because production debugging quality directly impacts reliability, incident cost, and on-call engineer load.
+What makes it unique: deterministic multi-step evaluation with strict action semantics, reward shaping, and reproducible grading.
 
----
+## Live Demo
 
-**Repository:** https://github.com/srujangowda07/openenv_incident_rca  
-**Hugging Face Deployment:** https://srujan0001-incident-rca-env.hf.space
-
----
+- Hugging Face Space: https://huggingface.co/spaces/srujan0001/env_incident_rca
+- Web UI: https://srujan0001-env-incident-rca.hf.space/web/
+- GitHub: https://github.com/srujangowda07/openenv_incident_rca
 
 ## Problem Statement
 
@@ -25,9 +26,7 @@ Production outages directly impact reliability, cost, and engineering productivi
 
 This environment models incident response using a controlled, deterministic microservice system. It enables training and evaluating agents that can diagnose failures through structured investigation rather than guesswork.
 
----
-
-## Why This Task is Challenging
+## Why This Is Challenging
 
 - **Partial observability** — agents do not see the full system state upfront
 - **Multi-step reasoning** — diagnosis requires sequential investigation
@@ -35,7 +34,17 @@ This environment models incident response using a controlled, deterministic micr
 - **Noisy signals** — not all observations directly indicate the root cause
 - **Efficiency trade-offs** — excessive actions reduce the final score
 
----
+## Example Investigation (Step-by-step)
+
+A realistic investigation flow mirrors SRE debugging:
+
+1. **query_logs** (`grep_logs`) on the alerting service to identify first-order symptoms.
+2. **trace_dependency** (`query_dependencies`) to follow upstream/downstream blast radius.
+3. **check_metrics** (`query_metrics`) on likely failing services for confirmation signals.
+4. **identify root cause** by combining log signatures + metric anomalies + dependency path.
+5. **submit diagnosis** (`submit_diagnosis`) with `root_cause_service` and `cause_type`.
+
+This sequence rewards evidence-driven diagnosis and penalizes guesswork/repetition.
 
 ## Environment Design
 
@@ -59,8 +68,6 @@ The environment is partially observable — agents must use actions to uncover r
 
 The environment does not expose the root cause directly — agents must infer it through interaction.
 
----
-
 ### Action Space
 
 Five atomic actions represent real-world debugging tools:
@@ -74,8 +81,6 @@ Five atomic actions represent real-world debugging tools:
 | `submit_diagnosis` | `root_cause_service`, `cause_type` | Submit final diagnosis (ends episode) |
 
 All parameters are required and strictly validated. Invalid or missing parameters result in a `-0.10` penalty.
-
----
 
 ## Reward Function
 
@@ -99,11 +104,9 @@ step penalty                     -0.01     applied every step
 ```
 
 This design ensures:
-- agents must follow a correct reasoning path
-- efficient behavior is rewarded
-- reward hacking through repetition is prevented
-
----
+- Agents must follow a correct reasoning path.
+- Efficient behavior is rewarded.
+- Reward hacking through repetition is prevented.
 
 ## Tasks
 
@@ -131,8 +134,6 @@ This design ensures:
 |---|---|---|
 | `hard_001` | Five services failing simultaneously | `redis-cluster` — split-brain from network switch firmware upgrade |
 
----
-
 ## Grader
 
 Evaluation is fully deterministic and reproducible. Ground truth is embedded in the scenario at generation time — no LLM grading.
@@ -148,8 +149,6 @@ The grader evaluates both correctness and reasoning evidence — agents cannot a
 
 **Pass threshold: 0.60 / 1.00**
 
----
-
 ## Score Distribution
 
 | Agent Quality | Score Range |
@@ -159,8 +158,6 @@ The grader evaluates both correctness and reasoning evidence — agents cannot a
 | Good agent (correct + evidence) | 0.7 – 0.9 |
 | Perfect agent (correct + cause + efficient) | 0.95 – 1.0 |
 
----
-
 ## Design Principles
 
 - **Deterministic** — same input produces the same output every run
@@ -168,8 +165,6 @@ The grader evaluates both correctness and reasoning evidence — agents cannot a
 - **Causal** — realistic cause–effect relationships across services
 - **Measurable** — every action has a defined impact on score
 - **Reproducible** — fixed seeds ensure consistent evaluation
-
----
 
 ## System Flow
 
@@ -182,25 +177,29 @@ The grader evaluates both correctness and reasoning evidence — agents cannot a
 
 This process mirrors real-world debugging workflows.
 
----
-
 ## Architecture
 
 ![Visual Architecture](assets/architecture.png)
 
+## System Architecture (Simple Flow)
+
+```text
+Agent -> API -> OpenEnv -> Env -> Grader
+```
+
+- **Agent** decides the next investigation action.
+- **API** receives/returns structured action-observation payloads.
+- **OpenEnv** enforces environment interface and runtime contracts.
+- **Env** executes incident logic (`reset`, `step`, `state`).
+- **Grader** computes deterministic final scoring.
 
 ## What Makes This Environment Unique
 
-- Models real-world SRE debugging workflows
-- Requires multi-step reasoning instead of single-shot answers
-- Penalizes inefficient investigation strategies
-- Fully deterministic and reproducible
-- Designed for evaluating reasoning quality, not just correctness
-- Supports plug-and-play LLM backends via OpenAI-compatible APIs
-- Achieves consistent success across all tasks with strong LLMs (e.g., LLaMA 70B)
-- Provides a deterministic baseline for reproducible benchmarking against reasoning-based agents
-
----
+- **Production realism with strict structure**: outages are modeled across logs, metrics, traces, and service dependencies.
+- **Deterministic benchmarking**: same seed, same trajectory, reproducible scores.
+- **Reasoning-first evaluation**: rewards evidence collection, not just final guesses.
+- **Action discipline**: penalties for invalid/repeated actions enforce investigation quality.
+- **OpenEnv-native deployment**: validate/push workflow works directly for reproducible evaluation.
 
 ## Environment Variables
 
@@ -229,8 +228,6 @@ These variables allow the agent to use a pretrained LLM.
 
 The environment supports any OpenAI-compatible API (e.g., NVIDIA NIM, OpenAI, HuggingFace Router).
 
----
-
 ## Inference (LLM Agent)
 
 Run the environment with a language model agent:
@@ -243,8 +240,6 @@ python inference.py
 - It selects actions based on observations
 - It does NOT perform training
 - Requires API credentials
-
----
 
 ## Quickstart
 
@@ -301,8 +296,6 @@ print(f"Final reward: {reward.total:+.3f}")
 print("Ground truth:", info.ground_truth_root_cause)
 ```
 
----
-
 ## Baseline Results (Deterministic Policy)
 
 We use a deterministic scripted baseline (no LLM) to ensure:
@@ -326,8 +319,6 @@ We use a deterministic scripted baseline (no LLM) to ensure:
 * Performance degrades on multi-service cascades
 
 This provides a stable lower bound for evaluating agent reasoning ability.
-
----
 
 ## Agent Performance (LLM-based)
 
@@ -356,34 +347,37 @@ Using a reasoning-driven LLM agent:
 
 *Run `python baseline/run_baseline.py --all` to reproduce.*
 
----
-
 ## Project Structure
 
 ```
 incident_rca_env/
-├── server/
-│   ├── app.py
-│   ├── incident_rca_env_environment.py
-│   └── Dockerfile
-├── environment/
-│   ├── env.py
-│   ├── scenario_generator.py
-│   ├── reward_shaper.py
-│   └── state_manager.py
-├── graders/
-├── tasks/
+├── assets/
 ├── baseline/
 ├── data/
-├── models.py
-├── inference.py
+├── environment/
+│   ├── __init__.py
+│   ├── canonical.py
+│   ├── env.py
+│   ├── reward_shaper.py
+│   ├── scenario_generator.py
+│   └── state_manager.py
+├── graders/
+├── server/
+│   ├── __init__.py
+│   ├── app.py
+│   └── incident_rca_env_environment.py
+├── tasks/
+├── __init__.py
 ├── client.py
+├── Dockerfile
+├── inference.py
+├── models.py
 ├── openenv.yaml
 ├── pyproject.toml
-└── README.md
+├── README.md
+├── uv.lock
+└── validate.py
 ```
-
----
 
 ## OpenEnv Integration
 
@@ -400,14 +394,16 @@ Validation:
 openenv validate → PASSED
 ```
 
+Deployment:
 
+```
+openenv push --repo-id <your-repo>
+```
 
----
-
-## Why This Environment Matters
+## Why This Matters (Real World Impact)
 
 This project focuses on evaluating reasoning quality, not just final answers. It provides a structured, reproducible benchmark for training agents that can navigate multi-step diagnostic workflows — the same workflows on-call engineers perform under pressure during production incidents.
 
-A well-trained agent that reduces mean time to resolution, even marginally, translates directly to fewer outages, lower costs, and less engineer burnout.
+A well-trained agent that reduces mean time to resolution (MTTR), even marginally, translates directly to fewer outages, lower costs, and less engineer burnout.
 
 This environment prioritizes reliable evaluation over complexity, making it a strong benchmark for reasoning-driven agents.
