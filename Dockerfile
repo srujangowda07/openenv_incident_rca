@@ -42,7 +42,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
 # Health check
-HEALTHCHECK CMD curl -f http://localhost:7860/docs || exit 1
+HEALTHCHECK CMD curl -f http://localhost:7860/health || exit 1
 
 # Start server
 CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
