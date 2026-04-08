@@ -26,7 +26,12 @@ class IncidentRCAEnvironment(Environment):
         # safely extract values
         episode_id = config.get("episode_id", str(uuid4()))
         seed = config.get("seed", None)
-        task_id = config.get("task_id", "easy_001")
+        task_id = (
+            config.get("task_id")
+            or config.get("task")
+            or config.get("taskId")
+            or "easy_001"
+        )
 
         # reset internal state
         self._state = State(episode_id=episode_id, step_count=0)
@@ -46,7 +51,12 @@ class IncidentRCAEnvironment(Environment):
         self, action: ActionModel
     ) -> tuple[ObservationModel, RewardModel, bool, InfoModel]:
         if self._env is None:
-            raise RuntimeError("Call reset() before step()")
+            # Some evaluators call step in stateless HTTP mode.
+            # Auto-reset to avoid runtime failure.
+            self.reset({})
+
+        if self._env is None:
+            return ObservationModel(), RewardModel(), True, InfoModel()
 
         obs, reward, done, info = self._env.step(action)
 

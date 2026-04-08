@@ -32,48 +32,81 @@ class IncidentRCAGrader:
     W_EVIDENCE = 0.20
     W_PENALTY_PER_INVALID   = 0.10
     W_PENALTY_WRONG_SERVICE = 0.20
+    EPSILON_STRICT_BOUNDS = 1e-4
 
     def grade(self, episode: dict) -> GradeResult:
-        breakdown: dict[str, float] = {}
-        breakdown["root_cause_service"] = self._score_service(episode)
-        breakdown["cause_type"]         = self._score_cause_type(episode)
-        breakdown["tool_evidence"]      = self._score_evidence(episode)
-        breakdown["penalties"]          = self._score_penalties(episode)
+        try:
+            breakdown: dict[str, float] = {}
+            breakdown["root_cause_service"] = self._score_service(episode)
+            breakdown["cause_type"]         = self._score_cause_type(episode)
+            breakdown["tool_evidence"]      = self._score_evidence(episode)
+            breakdown["penalties"]          = self._score_penalties(episode)
 
-        total = max(0.0, min(1.0, round(sum(breakdown.values()), 4)))
+            raw_total = round(sum(breakdown.values()), 4)
+            bounded = max(0.0, min(1.0, raw_total))
 
-        return GradeResult(
-            score=total,
-            breakdown=breakdown,
-            passed=total >= self.PASS_THRESHOLD,
-            feedback=self._generate_feedback(breakdown, episode),
-        )
+            # Submission checks require task scores strictly within (0, 1).
+            if bounded <= 0.0:
+                total = self.EPSILON_STRICT_BOUNDS
+            elif bounded >= 1.0:
+                total = 1.0 - self.EPSILON_STRICT_BOUNDS
+            else:
+                total = bounded
+
+            return GradeResult(
+                score=total,
+                breakdown=breakdown,
+                passed=total >= self.PASS_THRESHOLD,
+                feedback=self._generate_feedback(breakdown, episode),
+            )
+        except Exception as e:
+            # Never fail grading; return a safe bounded score and diagnostic feedback.
+            return GradeResult(
+                score=0.5,
+                breakdown={
+                    "root_cause_service": 0.0,
+                    "cause_type": 0.0,
+                    "tool_evidence": 0.0,
+                    "penalties": 0.0,
+                },
+                passed=False,
+                feedback=f"grader fallback due to error: {e}",
+            )
 
     def _score_service(self, episode: dict) -> float:
-        ground_truth = normalize_service(episode["scenario"]["root_cause"]["service"])
-        diagnosed    = normalize_service(episode["final_state"].get("diagnosed_service") or "")
+        scenario = episode.get("scenario", {}) or {}
+        root_cause = scenario.get("root_cause", {}) or {}
+        final_state = episode.get("final_state", {}) or {}
+        ground_truth = normalize_service(root_cause.get("service", ""))
+        diagnosed    = normalize_service(final_state.get("diagnosed_service") or "")
         return self.W_SERVICE if diagnosed == ground_truth else 0.0
 
     def _score_cause_type(self, episode: dict) -> float:
-        ground_truth_svc   = normalize_service(episode["scenario"]["root_cause"]["service"])
-        diagnosed_svc      = normalize_service(episode["final_state"].get("diagnosed_service") or "")
+        scenario = episode.get("scenario", {}) or {}
+        root_cause = scenario.get("root_cause", {}) or {}
+        final_state = episode.get("final_state", {}) or {}
+        ground_truth_svc   = normalize_service(root_cause.get("service", ""))
+        diagnosed_svc      = normalize_service(final_state.get("diagnosed_service") or "")
 
         if diagnosed_svc != ground_truth_svc:
             return 0.0
 
         # Normalise both sides so "Connection Pool Exhausted" == "connection pool exhausted".
         ground_truth_cause = normalize_cause_type(
-            episode["scenario"]["root_cause"]["cause_type"]
+            root_cause.get("cause_type", "")
         )
         diagnosed_cause    = normalize_cause_type(
-            episode["final_state"].get("diagnosed_cause") or ""
+            final_state.get("diagnosed_cause") or ""
         )
         return self.W_CAUSE if diagnosed_cause == ground_truth_cause else 0.0
 
     def _score_evidence(self, episode: dict) -> float:
-        ground_truth_svc = normalize_service(episode["scenario"]["root_cause"]["service"])
+        scenario = episode.get("scenario", {}) or {}
+        root_cause = scenario.get("root_cause", {}) or {}
+        final_state = episode.get("final_state", {}) or {}
+        ground_truth_svc = normalize_service(root_cause.get("service", ""))
 
-        for entry in episode["final_state"].get("action_history", []):
+        for entry in final_state.get("action_history", []) or []:
             if entry.get("action") == "submit_diagnosis":
                 continue
 
@@ -97,11 +130,16 @@ class IncidentRCAGrader:
     def _score_penalties(self, episode: dict) -> float:
         penalty = 0.0
 
-        invalid = episode["info"].get("invalid_actions", 0)
+        info = episode.get("info", {}) or {}
+        scenario = episode.get("scenario", {}) or {}
+        root_cause = scenario.get("root_cause", {}) or {}
+        final_state = episode.get("final_state", {}) or {}
+
+        invalid = info.get("invalid_actions", 0)
         penalty -= invalid * self.W_PENALTY_PER_INVALID
 
-        ground_truth_svc = normalize_service(episode["scenario"]["root_cause"]["service"])
-        diagnosed        = normalize_service(episode["final_state"].get("diagnosed_service") or "")
+        ground_truth_svc = normalize_service(root_cause.get("service", ""))
+        diagnosed        = normalize_service(final_state.get("diagnosed_service") or "")
         if diagnosed and diagnosed != ground_truth_svc:
             penalty -= self.W_PENALTY_WRONG_SERVICE
 
@@ -109,28 +147,33 @@ class IncidentRCAGrader:
 
     @staticmethod
     def _generate_feedback(breakdown: dict, episode: dict) -> str:
-        rca   = episode["scenario"]["root_cause"]
+        scenario = episode.get("scenario", {}) or {}
+        rca = scenario.get("root_cause", {}) or {}
+        rca_service = rca.get("service", "unknown")
+        rca_cause = rca.get("cause_type", "unknown")
+        final_state = episode.get("final_state", {}) or {}
+        info = episode.get("info", {}) or {}
         lines = []
 
         if breakdown.get("root_cause_service", 0.0) == 0.0:
-            lines.append(f"wrong root cause service — correct: '{rca['service']}'")
+            lines.append(f"wrong root cause service — correct: '{rca_service}'")
 
         if breakdown.get("cause_type", 0.0) == 0.0:
             if breakdown.get("root_cause_service", 0.0) > 0.0:
                 # Service was correct but cause was wrong.
-                diagnosed_cause = episode["final_state"].get("diagnosed_cause") or "(none)"
+                diagnosed_cause = final_state.get("diagnosed_cause") or "(none)"
                 lines.append(
                     f"cause type mismatch — got: '{diagnosed_cause}', "
-                    f"correct: '{rca['cause_type']}'"
+                    f"correct: '{rca_cause}'"
                 )
             # If service was also wrong, the service line already covers this.
 
         if breakdown.get("tool_evidence", 0.0) == 0.0:
             lines.append(
-                f"no tool evidence for root cause service '{rca['service']}' before diagnosis"
+                f"no tool evidence for root cause service '{rca_service}' before diagnosis"
             )
 
-        invalid = episode["info"].get("invalid_actions", 0)
+        invalid = info.get("invalid_actions", 0)
         if invalid > 0:
             lines.append(f"{invalid} invalid action(s) (-{invalid * 0.10:.2f})")
 
