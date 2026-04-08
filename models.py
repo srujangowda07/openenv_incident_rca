@@ -23,6 +23,8 @@ class ObservationModel(BaseModel):
     history: List[Dict] = Field(default_factory=list)
     available_actions: List[str] = Field(default_factory=list)
     done: bool = Field(default=False)
+    reward: Optional[float] = Field(default=None)
+    metadata: Dict = Field(default_factory=dict)
 
 
 class RewardModel(BaseModel):

@@ -37,11 +37,15 @@ class IncidentRCAEnv:
         self._ready = False
 
     def reset(self) -> ObservationModel:
+    try:
         self._scenario = self._generator.generate(self.task_id)
         self._sm.reset()
         self._reward_shaper = RewardShaper(self._scenario)
         self._ready = True
         return self._build_obs()
+    except Exception as e:
+        print(f"[ENV RESET ERROR] {e}")
+        raise RuntimeError(f"Env reset failed: {e}")
 
     def step(self, action: ActionModel) -> tuple[ObservationModel, RewardModel, bool, InfoModel]:
         assert self._ready, "Call reset() before step()"
