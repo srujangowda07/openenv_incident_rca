@@ -1,0 +1,40 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "incident_rca_env"
+version = "1.0.0"
+description = "Incident RCA Environment for OpenEnv - RL environment for training agents on incident response and root cause analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openenv-core[core]>=0.2.2",
+    "pydantic>=2.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+]
+
+[project.scripts]
+server = "server.app:main"
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+"*" = ["openenv.yaml", "README.md"]
