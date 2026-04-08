@@ -47,16 +47,14 @@ class IncidentRCAEnvironment(Environment):
             print(f"[RESET ERROR] {e}")
             raise RuntimeError(f"Reset failed: {str(e)}")
 
-    def step(
-        self, action: ActionModel
-    ) -> tuple[ObservationModel, RewardModel, bool, InfoModel]:
+    def step(self, action: ActionModel) -> ObservationModel:
         if self._env is None:
             # Some evaluators call step in stateless HTTP mode.
             # Auto-reset to avoid runtime failure.
             self.reset({})
 
         if self._env is None:
-            return ObservationModel(), RewardModel(), True, InfoModel()
+            return ObservationModel(done=True, reward=0.0, metadata={})
 
         obs, reward, done, info = self._env.step(action)
 
@@ -68,7 +66,16 @@ class IncidentRCAEnvironment(Environment):
         info.cumulative_reward = self._cumulative_reward
         info.steps_taken = self._state.step_count
 
-        return obs, reward, done, info
+        # OpenEnv HTTP serializer expects a single Observation object with reward/done.
+        obs.done = done
+        obs.reward = reward.total
+        obs.metadata = {
+            "reward_breakdown": reward.breakdown,
+            "reward_reason": reward.reason,
+            "info": info.model_dump() if hasattr(info, "model_dump") else {},
+        }
+
+        return obs
 
     @property
     def state(self) -> State:
