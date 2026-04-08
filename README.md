@@ -14,7 +14,7 @@ Try it live: https://srujan0001-incident-rca-env.hf.space/docs
 
 ---
 
-**Repository:** https://github.com/srujangowda07/openenv-incident-rca  
+**Repository:** https://github.com/srujangowda07/openenv_incident_rca  
 **Hugging Face Deployment:** https://srujan0001-incident-rca-env.hf.space
 
 ---
@@ -400,11 +400,7 @@ Validation:
 openenv validate → PASSED
 ```
 
-Deployment:
 
-```
-openenv push --repo-id <your-repo>
-```
 
 ---
 
