@@ -1,5 +1,5 @@
 from uuid import uuid4
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
@@ -20,15 +20,27 @@ class IncidentRCAEnvironment(Environment):
         self._state = State(episode_id=str(uuid4()), step_count=0)
         self._cumulative_reward = 0.0
 
-    def reset(self) -> ObservationModel:
+    def reset(self, config: Optional[Dict[str, Any]] = None) -> ObservationModel:
+        config = config or {}
+
+        # safely extract values
+        episode_id = config.get("episode_id", str(uuid4()))
+        seed = config.get("seed", None)
+        task_id = config.get("task_id", "easy_001")
+
         # reset internal state
-        self._state = State(episode_id=str(uuid4()), step_count=0)
+        self._state = State(episode_id=episode_id, step_count=0)
         self._cumulative_reward = 0.0
 
-        # create new env instance
-        self._env = IncidentRCAEnv(task_id="easy_001", seed=None)
+        # create env safely
+        try:
+            self._env = IncidentRCAEnv(task_id=task_id, seed=seed)
+            obs = self._env.reset()
+            return obs
 
-        return self._env.reset()
+        except Exception as e:
+            print(f"[RESET ERROR] {e}")
+            raise RuntimeError(f"Reset failed: {str(e)}")
 
     def step(
         self, action: ActionModel
