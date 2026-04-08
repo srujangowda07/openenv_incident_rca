@@ -173,15 +173,20 @@ class IncidentRCAGrader:
         return " | ".join(lines) if lines else "correct"
 
 
-def grade(output: dict) -> float:
+def grade(output) -> float:
     try:
-        if "final_state" in output:
-            result = IncidentRCAGrader().grade(output)
-            return max(0.05, min(0.95, float(result.score)))
+        if not isinstance(output, dict):
+            return 0.05
 
-        # OpenEnv simple output mode
-        service = (output.get("root_cause_service") or "").strip().lower()
-        cause   = (output.get("cause_type") or "").strip().lower()
+        if "final_state" in output:
+            try:
+                result = IncidentRCAGrader().grade(output)
+                return float(max(0.05, min(0.95, result.score)))
+            except Exception:
+                return 0.05
+
+        service = str(output.get("root_cause_service", "")).strip().lower()
+        cause   = str(output.get("cause_type", "")).strip().lower()
 
         score = 0.5
 
@@ -190,7 +195,13 @@ def grade(output: dict) -> float:
         if cause:
             score += 0.2
 
-        return max(0.05, min(0.95, score))
+        # FINAL SAFETY CLAMP
+        if score <= 0:
+            return 0.05
+        if score >= 1:
+            return 0.95
+
+        return float(score)
 
     except Exception:
         return 0.05
