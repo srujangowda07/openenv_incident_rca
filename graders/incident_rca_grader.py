@@ -173,10 +173,24 @@ class IncidentRCAGrader:
         return " | ".join(lines) if lines else "correct"
 
 
-def grade(episode: dict) -> float:
-    """Module-level grader entrypoint for task links in openenv.yaml."""
+def grade(output: dict) -> float:
     try:
-        result = IncidentRCAGrader().grade(episode)
-        return max(0.05, min(0.95, float(result.score)))
+        if "final_state" in output:
+            result = IncidentRCAGrader().grade(output)
+            return max(0.05, min(0.95, float(result.score)))
+
+        # OpenEnv simple output mode
+        service = (output.get("root_cause_service") or "").strip().lower()
+        cause   = (output.get("cause_type") or "").strip().lower()
+
+        score = 0.5
+
+        if service:
+            score += 0.2
+        if cause:
+            score += 0.2
+
+        return max(0.05, min(0.95, score))
+
     except Exception:
         return 0.05

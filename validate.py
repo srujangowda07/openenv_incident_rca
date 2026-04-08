@@ -148,7 +148,7 @@ except ImportError as e:
 
 def check_grader_range():
     from environment.scenario_generator import ScenarioGenerator
-    from graders.grader import IncidentRCAGrader
+    from graders.incident_rca_grader import IncidentRCAGrader
 
     gen = ScenarioGenerator(seed=42)
     scenario = gen.generate("easy_001")

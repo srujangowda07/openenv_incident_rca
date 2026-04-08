@@ -11,7 +11,7 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from environment.env import IncidentRCAEnv, ActionModel
-from graders.grader import IncidentRCAGrader
+from graders.incident_rca_grader import IncidentRCAGrader
 from tasks.task_definitions import TASKS, get_task
 
 

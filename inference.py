@@ -10,7 +10,7 @@ except ImportError:
     pass
 
 from environment.env import IncidentRCAEnv, ActionModel
-from graders.grader import IncidentRCAGrader
+from graders.incident_rca_grader import IncidentRCAGrader
 from tasks.task_definitions import get_task
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://integrate.api.nvidia.com/v1")
@@ -288,7 +288,7 @@ def main() -> None:
                 break
 
     finally:
-        score = 0.0
+        score = 0.05
         if info is not None:
             try:
                 episode = {
@@ -301,7 +301,7 @@ def main() -> None:
                 result = IncidentRCAGrader().grade(episode)
                 score  = result.score
             except Exception as e:
-                score = 0.0
+                score = 0.05
 
         success     = score >= 0.60 if (info is not None and result is not None) else False
         rewards_str = ",".join(f"{r:.2f}" for r in rewards) if rewards else "0.00"
