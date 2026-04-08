@@ -16,6 +16,10 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
+@app.get("/")
+def root():
+    return {"status": "running"}
+
 @app.get("/health")
 def health():
     return {"status": "ok"}

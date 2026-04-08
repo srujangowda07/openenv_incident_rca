@@ -1,48 +1,13 @@
-ARG BASE_IMAGE=ghcr.io/meta-pytorch/openenv-base:latest
+FROM python:3.10-slim
 
-FROM ${BASE_IMAGE} AS builder
-
-WORKDIR /app
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git curl && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY . /app/env
-WORKDIR /app/env
-
-# Ensure uv exists
-RUN if ! command -v uv >/dev/null 2>&1; then \
-        curl -LsSf https://astral.sh/uv/install.sh | sh && \
-        mv /root/.local/bin/uv /usr/local/bin/uv; \
-    fi
-
-# Install dependencies (ONLY ONCE)
-RUN --mount=type=cache,target=/root/.cache/uv \
-    if [ -f uv.lock ]; then \
-        uv sync --frozen; \
-    else \
-        uv sync; \
-    fi
-
-
-FROM ${BASE_IMAGE}
+RUN pip install uv
 
 WORKDIR /app
 
-# Install curl for healthcheck
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
-    rm -rf /var/lib/apt/lists/*
+COPY . /app
 
-COPY --from=builder /app/env/.venv /app/.venv
-COPY --from=builder /app/env /app/env
+RUN uv sync
 
-ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH="/app/env:$PYTHONPATH"
+ENV PYTHONPATH="/app:$PYTHONPATH"
 
-# Health check
-HEALTHCHECK CMD curl -f http://localhost:7860/health || exit 1
-
-# Start server
 CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
