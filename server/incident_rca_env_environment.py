@@ -49,12 +49,10 @@ class IncidentRCAEnvironment(Environment):
 
     def step(self, action: ActionModel) -> ObservationModel:
         if self._env is None:
-            # Some evaluators call step in stateless HTTP mode.
-            # Auto-reset to avoid runtime failure.
             self.reset({})
 
         if self._env is None:
-            return ObservationModel(done=True, reward=0.0, metadata={})
+            return ObservationModel(done=True, reward=0.01, metadata={})
 
         obs, reward, done, info = self._env.step(action)
 

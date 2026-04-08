@@ -121,14 +121,14 @@ action_schemas:
 # Reward Space 
 reward_space:
   type: float
-  range: [-0.60, 1.00]
+  range: [-0.60, 0.99]
   shape: partial_multi_step
   description: >
     Step-wise deterministic rewards. Intermediate rewards guide the agent
     toward the correct investigation path. Terminal reward is given only at
     submit_diagnosis.
   reward_table:
-    submit_diagnosis_perfect: +1.00   # exact service + cause match
+    submit_diagnosis_perfect: +0.99   # exact service + cause match
     submit_diagnosis_partial: +0.50   # correct service, wrong cause
     submit_diagnosis_wrong:   -0.50   # wrong service
     grep_logs_relevant:       +0.05   # service is in the failure cascade
@@ -142,7 +142,7 @@ reward_space:
 # Tasks 
 tasks:
   - id: easy_001
-    grader: graders.incident_rca_grader:grade
+    grader: graders.grader:grade
     name: "DB Connection Pool Exhaustion"
     difficulty: easy
     max_steps: 15
@@ -150,7 +150,7 @@ tasks:
     description: "api-gateway 502 errors caused by postgres connection pool exhaustion"
 
   - id: easy_002
-    grader: graders.incident_rca_grader:grade
+    grader: graders.grader:grade
     name: "Payment Service OOMKilled"
     difficulty: easy
     max_steps: 15
@@ -158,7 +158,7 @@ tasks:
     description: "payment-service pods crashing due to memory leak in unbounded cache"
 
   - id: easy_003
-    grader: graders.incident_rca_grader:grade
+    grader: graders.grader:grade
     name: "Disk Full — Logging Service"
     difficulty: easy
     max_steps: 15
@@ -166,7 +166,7 @@ tasks:
     description: "logging-service down because disk full and log rotation disabled"
 
   - id: medium_001
-    grader: graders.incident_rca_grader:grade
+    grader: graders.grader:grade
     name: "Slow Query Cascade — Missing Index"
     difficulty: medium
     max_steps: 25
@@ -174,7 +174,7 @@ tasks:
     description: "Schema migration dropped DB index causing 2-service cascade"
 
   - id: hard_001
-    grader: graders.incident_rca_grader:grade
+    grader: graders.grader:grade
     name: "Redis Cluster Split-Brain"
     difficulty: hard
     max_steps: 40
@@ -184,7 +184,7 @@ tasks:
 # Grader 
 grader:
   type: deterministic
-  score_range: [0.05, 0.95]
+  score_range: [0.01, 0.99]
   pass_threshold: 0.60
   dimensions:
     - name: root_cause_service

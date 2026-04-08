@@ -4,7 +4,7 @@ from .canonical import normalize_cause_type, normalize_service
 
 
 REWARD_TABLE: dict[str, float] = {
-    "submit_diagnosis_perfect":   +1.00,   # exact service + cause match
+    "submit_diagnosis_perfect":   +0.99,   # exact service + cause match
     "submit_diagnosis_partial":   +0.50,   # correct service, wrong/unrecognised cause
     "submit_diagnosis_wrong":     -0.50,   # wrong service
     "submit_diagnosis_early":     -0.20,   # diagnosis before gathering any evidence
@@ -34,7 +34,7 @@ class RewardShaper:
         service = normalize_service(service)
 
         if service in self.rewarded_services:
-            return 0.0, {action: 0.0}, f"already rewarded for {service}"
+            return 0.01, {action: 0.01}, f"already rewarded for {service}"
 
         self.rewarded_services.add(service)
 
@@ -71,7 +71,7 @@ class RewardShaper:
                 self.exploration_rewards_count += 1
                 v = REWARD_TABLE["useful_exploration"]
                 return v, {"fetch_traces": v}, "trace implicates root cause (already visited)"
-            return 0.0, {"fetch_traces": 0.0}, "trace implicates root cause but exploration reward capped"
+            return 0.01, {"fetch_traces": 0.01}, "trace implicates root cause but exploration reward capped"
 
         v = REWARD_TABLE["wrong_direction"]
         return v, {"fetch_traces": v}, "trace does not implicate root cause"

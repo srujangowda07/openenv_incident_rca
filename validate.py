@@ -103,11 +103,11 @@ try:
         )
         for _ in range(5):
             _, r, done, _ = env.step(action)
-            assert -1.0 <= r.total <= 1.0, f"Reward out of range: {r.total}"
+            assert -1.0 < r.total < 1.0, f"Reward out of range: {r.total}"
             if done:
                 break
 
-    check("reward in [-1.0, 1.0]", check_reward_range)
+    check("reward in (-1.0, 1.0)", check_reward_range)
 
     def check_state():
         env = IncidentRCAEnv(task_id="medium_001", seed=42)
@@ -196,13 +196,13 @@ def check_grader_range():
     }
 
     result = grader.grade(episode)
-    assert 0.0 <= result.score <= 1.0, f"Score out of range: {result.score}"
+    assert 0.0 < result.score < 1.0, f"Score out of range: {result.score}"
     assert result.score >= 0.60, (
         f"Perfect episode should pass threshold (0.60). Got: {result.score}"
     )
     assert result.passed, "Perfect episode should be marked as passed"
 
-check("grader score in [0.0, 1.0]", check_grader_range)
+check("grader score in (0.0, 1.0)", check_grader_range)
 
 
 
