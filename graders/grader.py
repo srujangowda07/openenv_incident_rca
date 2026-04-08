@@ -32,7 +32,8 @@ class IncidentRCAGrader:
     W_EVIDENCE = 0.20
     W_PENALTY_PER_INVALID   = 0.10
     W_PENALTY_WRONG_SERVICE = 0.20
-    EPSILON_STRICT_BOUNDS = 1e-4
+    MIN_SCORE_STRICT = 0.05
+    MAX_SCORE_STRICT = 0.95
 
     def grade(self, episode: dict) -> GradeResult:
         try:
@@ -43,15 +44,7 @@ class IncidentRCAGrader:
             breakdown["penalties"]          = self._score_penalties(episode)
 
             raw_total = round(sum(breakdown.values()), 4)
-            bounded = max(0.0, min(1.0, raw_total))
-
-            # Submission checks require task scores strictly within (0, 1).
-            if bounded <= 0.0:
-                total = self.EPSILON_STRICT_BOUNDS
-            elif bounded >= 1.0:
-                total = 1.0 - self.EPSILON_STRICT_BOUNDS
-            else:
-                total = bounded
+            total = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
 
             return GradeResult(
                 score=total,
@@ -62,7 +55,7 @@ class IncidentRCAGrader:
         except Exception as e:
             # Never fail grading; return a safe bounded score and diagnostic feedback.
             return GradeResult(
-                score=0.5,
+                score=0.05,
                 breakdown={
                     "root_cause_service": 0.0,
                     "cause_type": 0.0,
@@ -178,3 +171,12 @@ class IncidentRCAGrader:
             lines.append(f"{invalid} invalid action(s) (-{invalid * 0.10:.2f})")
 
         return " | ".join(lines) if lines else "correct"
+
+
+def grade(episode: dict) -> float:
+    """Module-level grader entrypoint for task links in openenv.yaml."""
+    try:
+        result = IncidentRCAGrader().grade(episode)
+        return max(0.05, min(0.95, float(result.score)))
+    except Exception:
+        return 0.05

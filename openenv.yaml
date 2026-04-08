@@ -142,6 +142,7 @@ reward_space:
 # Tasks 
 tasks:
   - id: easy_001
+    grader: graders.easy_grader:grade
     name: "DB Connection Pool Exhaustion"
     difficulty: easy
     max_steps: 15
@@ -149,6 +150,7 @@ tasks:
     description: "api-gateway 502 errors caused by postgres connection pool exhaustion"
 
   - id: easy_002
+    grader: graders.easy_grader:grade
     name: "Payment Service OOMKilled"
     difficulty: easy
     max_steps: 15
@@ -156,6 +158,7 @@ tasks:
     description: "payment-service pods crashing due to memory leak in unbounded cache"
 
   - id: easy_003
+    grader: graders.easy_grader:grade
     name: "Disk Full — Logging Service"
     difficulty: easy
     max_steps: 15
@@ -163,6 +166,7 @@ tasks:
     description: "logging-service down because disk full and log rotation disabled"
 
   - id: medium_001
+    grader: graders.medium_grader:grade
     name: "Slow Query Cascade — Missing Index"
     difficulty: medium
     max_steps: 25
@@ -170,6 +174,7 @@ tasks:
     description: "Schema migration dropped DB index causing 2-service cascade"
 
   - id: hard_001
+    grader: graders.hard_grader:grade
     name: "Redis Cluster Split-Brain"
     difficulty: hard
     max_steps: 40

@@ -3,6 +3,7 @@ TASKS = {
 
     "easy_001": {
         "id": "easy_001",
+        "grader": "graders.easy_grader:grade",
         "name": "Database Connection Pool Exhaustion",
         "difficulty": "easy",
         "max_steps": 15,
@@ -37,6 +38,7 @@ DIFFICULTY NOTES:
 
     "easy_002": {
         "id": "easy_002",
+        "grader": "graders.easy_grader:grade",
         "name": "Payment Service OOM Kill",
         "difficulty": "easy",
         "max_steps": 15,
@@ -68,6 +70,7 @@ DIFFICULTY NOTES:
 
     "easy_003": {
         "id": "easy_003",
+        "grader": "graders.easy_grader:grade",
         "name": "Disk Full — Logging Service Down",
         "difficulty": "easy",
         "max_steps": 15,
@@ -97,6 +100,7 @@ DIFFICULTY NOTES:
 
     "medium_001": {
         "id": "medium_001",
+        "grader": "graders.medium_grader:grade",
         "name": "Slow Query Cascade — Missing DB Index",
         "difficulty": "medium",
         "max_steps": 25,
@@ -133,6 +137,7 @@ DIFFICULTY NOTES:
 
     "hard_001": {
         "id": "hard_001",
+        "grader": "graders.hard_grader:grade",
         "name": "Redis Cluster Split-Brain — Multi-Service Cascade",
         "difficulty": "hard",
         "max_steps": 40,
