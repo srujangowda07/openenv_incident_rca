@@ -16,6 +16,9 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
+@app.get("/")
+def home():
+    return {"message": "Incident RCA Environment is running "}
 
 def main():
     import uvicorn
