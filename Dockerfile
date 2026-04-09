@@ -1,43 +1,42 @@
-FROM python:3.12-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-	PYTHONUNBUFFERED=1 \
-	UV_LINK_MODE=copy
+ARG BASE_IMAGE=ghcr.io/meta-pytorch/openenv-base:latest
+FROM ${BASE_IMAGE} AS builder
 
 WORKDIR /app
 
 RUN apt-get update && \
-	apt-get install -y --no-install-recommends curl ca-certificates && \
-	rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir uv
+# Copy environment code
+COPY . /app/env
+WORKDIR /app/env
 
-# Copy dependency metadata first for better build caching
-COPY pyproject.toml README.md openenv.yaml /app/
-COPY uv.lock /app/uv.lock
+# Ensure uv exists
+RUN if ! command -v uv >/dev/null 2>&1; then \
+        curl -LsSf https://astral.sh/uv/install.sh | sh && \
+        mv /root/.local/bin/uv /usr/local/bin/uv && \
+        mv /root/.local/bin/uvx /usr/local/bin/uvx; \
+    fi
 
-RUN if [ -f uv.lock ]; then \
-		uv sync --frozen --no-dev; \
-	else \
-		uv sync --no-dev; \
-	fi
+# Install ONLY dependencies (NOT project)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    if [ -f uv.lock ]; then \
+        uv sync --frozen --no-install-project --no-editable; \
+    else \
+        uv sync --no-install-project --no-editable; \
+    fi
 
-# Copy full source after dependencies
-COPY . /app
+# Runtime stage
+FROM ${BASE_IMAGE}
 
-RUN if [ -f uv.lock ]; then \
-		uv sync --frozen --no-dev; \
-	else \
-		uv sync --no-dev; \
-	fi
+WORKDIR /app
 
-ENV PATH="/app/.venv/bin:$PATH" \
-	PYTHONPATH="/app:$PYTHONPATH" \
-	PORT=8000
+COPY --from=builder /app/env/.venv /app/.venv
+COPY --from=builder /app/env /app/env
 
-EXPOSE 8000
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-	CMD curl -f http://127.0.0.1:${PORT}/health || exit 1
+EXPOSE 7860
 
-CMD ["sh", "-c", "uv run uvicorn server.app:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "cd /app/env && uvicorn server.app:app --host 0.0.0.0 --port 7860"]
