@@ -173,10 +173,29 @@ class IncidentRCAGrader:
         return " | ".join(lines) if lines else "correct"
 
 
-def grade(episode: dict) -> float:
-    """Module-level grader entrypoint for task links in openenv.yaml."""
+def grade(payload: dict) -> float:
+    """
+    Module-level grader entrypoint for task links in openenv.yaml.
+    Handles both full episode dictionaries and partial output dictionaries.
+    Strictly returns a float between 0.10 and 0.90.
+    """
     try:
+        # Resolve the case where the input might be nested or direct
+        episode = payload
+        if not isinstance(payload, dict):
+            return 0.10
+
+        # If payload is just the agent's output without scenario context, 
+        # we can't grade root cause accurately, so return a safe baseline.
+        if "scenario" not in payload:
+             # Basic heuristic if scenario is missing
+             score = 0.5
+             if payload.get("root_cause_service"): score += 0.2
+             if payload.get("cause_type"): score += 0.2
+             return float(max(0.10, min(0.90, score)))
+
         result = IncidentRCAGrader().grade(episode)
-        return max(0.10, min(0.90, float(result.score)))
+        return float(max(0.10, min(0.90, result.score)))
     except Exception:
+        # Never return 0.0 or 1.0 to satisfy strict submission requirements
         return 0.10

@@ -10,7 +10,7 @@ except ImportError:
     pass
 
 from environment.env import IncidentRCAEnv, ActionModel
-from graders.incident_rca_grader import IncidentRCAGrader
+from graders.grader import IncidentRCAGrader
 from tasks.task_definitions import get_task
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://integrate.api.nvidia.com/v1")
