@@ -39,4 +39,4 @@ ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
 EXPOSE 7860
 
-CMD ["sh", "-c", "PYTHONPATH=/app/env uvicorn server.app:app --host 0.0.0.0 --port 7860"]
+CMD ["sh", "-c", "cd /app/env && uvicorn server.app:app --host 0.0.0.0 --port 7860"]
