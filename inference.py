@@ -225,18 +225,18 @@ def _format_action_str(action: ActionModel) -> str:
 
 def _clamp_score(score: float) -> float:
     """Ensure score is strictly between 0 and 1 (never 0.0 or 1.0) and snapped to 0.1 increments."""
-    return float(round(max(SCORE_MIN, min(SCORE_MAX, score)), 1))
+    return float(max(SCORE_MIN, min(SCORE_MAX, score)))
 
 
-# ─── Grade the completed episode ─────────────────────────────────────────────
+# Grade the completed episode
 def _grade_episode(info, actions_taken: list, env: IncidentRCAEnv) -> float:
     try:
+        root = info.model_dump().get("ground_truth_root_cause") or {}
         episode = {
-            "task_id":       TASK_ID,
-            "scenario":      {"root_cause": info.model_dump().get("ground_truth_root_cause")},
-            "actions_taken": actions_taken,
-            "final_state":   env.state(),
-            "info":          info.model_dump(),
+            "task_id": TASK_ID,
+            "scenario": {"root_cause": root},
+            "final_state": env.state() or {},
+            "info": info.model_dump() or {},
         }
         result = IncidentRCAGrader().grade(episode)
         return _clamp_score(result.score)

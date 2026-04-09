@@ -121,13 +121,14 @@ try:
     check("state() returns dict", check_state)
 
     def check_all_tasks():
-        # Test representative sample of all 17 tasks
-        for tid in ["easy_001", "easy_007", "medium_001", "medium_005", "hard_001", "hard_005"]:
+        from tasks.task_definitions import TASKS
+        # Test all 17 tasks
+        for tid in TASKS.keys():
             env = IncidentRCAEnv(task_id=tid, seed=42)
             obs = env.reset()
             assert obs.task_id == tid, f"task_id mismatch for {tid}"
 
-    check("all 5 tasks loadable", check_all_tasks)
+    check("all 17 tasks loadable", check_all_tasks)
 
     def check_determinism():
         env1 = IncidentRCAEnv(task_id="easy_001", seed=42)

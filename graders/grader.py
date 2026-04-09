@@ -42,9 +42,8 @@ class IncidentRCAGrader:
             breakdown["tool_evidence"]      = self._score_evidence(episode)
             breakdown["penalties"]          = self._score_penalties(episode)
 
-            raw_total = round(sum(breakdown.values()), 4)
-            # Snap to clean 0.1 increments (0.1, 0.2, ... 0.9)
-            total = round(max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total)), 1)
+            raw_total = sum(breakdown.values())
+            total = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
 
             return GradeResult(
                 score=total,
@@ -134,7 +133,7 @@ class IncidentRCAGrader:
         if diagnosed and diagnosed != ground_truth_svc:
             penalty -= self.W_PENALTY_WRONG_SERVICE
 
-        return round(penalty, 4)
+        return penalty
 
     @staticmethod
     def _generate_feedback(breakdown: dict, episode: dict) -> str:
@@ -171,22 +170,33 @@ class IncidentRCAGrader:
 
 
 def grade(payload: dict) -> float:
-    """
-    Module-level grader entrypoint for task links in openenv.yaml.
-    Handles both full episode dictionaries and partial output dictionaries.
-    Strictly returns a float between 0.10 and 0.90.
-    """
     try:
-        episode = payload
         if not isinstance(payload, dict):
             return 0.10
 
-        if "scenario" not in payload:
-             return 0.10
+        final_state = payload.get("final_state", {}) or {}
+        scenario = payload.get("scenario", {}) or {}
+        root = scenario.get("root_cause", {}) or {}
 
-        result = IncidentRCAGrader().grade(episode)
-        # Snap to clean 0.1 increment and clamp strictly within (0, 1)
-        return float(round(max(0.10, min(0.90, result.score)), 1))
+        diagnosed_service = final_state.get("diagnosed_service")
+        diagnosed_cause = final_state.get("diagnosed_cause")
+
+        true_service = root.get("service")
+        true_cause = root.get("cause_type")
+
+        score = 0.10
+
+        if diagnosed_service and true_service:
+            if diagnosed_service == true_service:
+                score += 0.4
+
+                if diagnosed_cause and true_cause:
+                    if diagnosed_cause == true_cause:
+                        score += 0.4
+                    else:
+                        score += 0.2
+
+        return max(0.10, min(0.90, score))
+
     except Exception:
-        # Never return 0.0 or 1.0 to satisfy strict submission requirements
         return 0.10
