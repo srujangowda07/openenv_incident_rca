@@ -44,7 +44,8 @@ class IncidentRCAGrader:
             breakdown["penalties"]          = self._score_penalties(episode)
 
             raw_total = round(sum(breakdown.values()), 4)
-            total = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
+            # Snap to clean 0.1 increments (0.1, 0.2, ... 0.9)
+            total = round(max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total)), 1)
 
             return GradeResult(
                 score=total,
@@ -195,7 +196,8 @@ def grade(payload: dict) -> float:
              return float(max(0.10, min(0.90, score)))
 
         result = IncidentRCAGrader().grade(episode)
-        return float(max(0.10, min(0.90, result.score)))
+        # Snap to clean 0.1 increment and clamp strictly within (0, 1)
+        return float(round(max(0.10, min(0.90, result.score)), 1))
     except Exception:
         # Never return 0.0 or 1.0 to satisfy strict submission requirements
         return 0.10

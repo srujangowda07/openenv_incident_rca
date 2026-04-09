@@ -1,4 +1,25 @@
+"""
+inference.py — OpenEnv Submission Script for IncidentRCAEnv
+============================================================
+Stdout format (MANDATORY — do NOT change field names or order):
+
+    [START] task=<task_id> env=<env_name> model=<model_name>
+    [STEP]  step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
+    [END]   success=<true|false> steps=<n> score=<0.00> rewards=<r1,r2,...>
+
+Rules:
+  - One [START] at episode begin.
+  - One [STEP] per step, immediately after env.step() returns.
+  - One [END] after episode ends, always emitted (even on exception).
+  - reward and rewards are formatted to 2 decimal places.
+  - done and success are lowercase: true or false.
+  - error is the raw error string, or null if none.
+  - score is the final graded score, formatted to 2 decimal places.
+  - All fields on a single line, no newlines within a line.
+  - flush=True on every print so the evaluator reads output in real-time.
+"""
 from __future__ import annotations
+
 import json
 import os
 import time
@@ -9,17 +30,51 @@ try:
 except ImportError:
     pass
 
+from openai import OpenAI
+
 from environment.env import IncidentRCAEnv, ActionModel
 from graders.grader import IncidentRCAGrader
 from tasks.task_definitions import get_task
 
+# ─── Configuration ────────────────────────────────────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://integrate.api.nvidia.com/v1")
-MODEL_NAME   = os.getenv("MODEL_NAME", "meta/llama-3.3-70b-instruct")
-HF_TOKEN     = os.getenv("HF_TOKEN", "")
-TASK_ID      = os.getenv("TASK_ID", "easy_001")
-SEED         = int(os.getenv("SEED", "42"))
+MODEL_NAME   = os.getenv("MODEL_NAME",   "meta/llama-3.3-70b-instruct")
+HF_TOKEN     = os.getenv("HF_TOKEN",     "")
+TASK_ID      = os.getenv("TASK_ID",      "easy_001")
+SEED         = int(os.getenv("SEED",     "42"))
 ENV_NAME     = "incident-rca-env"
 
+# Score constants — must stay strictly within (0, 1)
+SCORE_MIN     = 0.10   # floor: never emit 0.0
+SCORE_MAX     = 0.90   # ceiling: never emit 1.0
+SCORE_FALLBACK = 0.10  # used when grader cannot run
+
+# ─── Logging helpers (flush=True on every call) ───────────────────────────────
+def log_start(task: str, env: str, model: str) -> None:
+    print(f"[START] task={task} env={env} model={model}", flush=True)
+
+
+def log_step(step: int, action: str, reward: float, done: bool, error: str | None) -> None:
+    error_val = error if error else "null"
+    done_val  = "true" if done else "false"
+    print(
+        f"[STEP] step={step} action={action} reward={reward:.2f} "
+        f"done={done_val} error={error_val}",
+        flush=True,
+    )
+
+
+def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> None:
+    rewards_str  = ",".join(f"{r:.2f}" for r in rewards) if rewards else "0.00"
+    success_val  = "true" if success else "false"
+    print(
+        f"[END] success={success_val} steps={steps} score={score:.2f} "
+        f"rewards={rewards_str}",
+        flush=True,
+    )
+
+
+# ─── Prompt builders ─────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """You are an expert Site Reliability Engineer performing incident response.
 Diagnose the root cause service and failure type, then submit your diagnosis.
 
@@ -52,45 +107,17 @@ Rules:
 - All parameters are required. Missing parameters incur a penalty.
 - metric_name is required for query_metrics.
 - Do NOT repeat the same action with the same parameters.
-- Do NOT explore the same service multiple times unless new evidence is required.
 - Avoid unnecessary actions — each step must provide new information.
-- Focus only on the most likely failing service.
-- Call submit_diagnosis as soon as strong evidence is found — do NOT delay.
+- Call submit_diagnosis as soon as strong evidence is found.
 
 Strategy:
-1. Start from alerts and identify the most likely failing service.
-2. Use query_dependencies to trace the failure chain BEFORE diagnosing.
-3. Always follow dependency chain to the downstream service before concluding.
-4. Use grep_logs on the suspected root service to confirm the issue.
-5. Use query_metrics only if logs are unclear.
-6. Use fetch_traces only if dependency relationship is unclear.
-7. Only call submit_diagnosis AFTER confirming root cause from logs or metrics.
-8. Avoid repeated or unnecessary actions, but DO NOT skip investigation steps.
+1. Read alerts to identify the alerting service.
+2. Use query_dependencies to trace the failure chain upstream.
+3. Use grep_logs on the suspected root service to confirm the issue.
+4. Use query_metrics only if logs are unclear.
+5. Call submit_diagnosis once root cause is confirmed.
 
-Respond ONLY with JSON. No explanation. Keep output minimal.
-
-Examples:
-{"action_type": "query_dependencies", "parameters": {"service": "api-gateway"}}
-
-{"action_type": "grep_logs", "parameters": {"service": "user-service", "keyword": "timeout"}}
-"""
-
-
-class ParseError(ValueError):
-    pass
-
-def validate_env() -> None:
-    if API_BASE_URL in ("", "base_url"):
-        raise ValueError("Invalid API_BASE_URL")
-    if MODEL_NAME in ("", "model_name"):
-        raise ValueError("Invalid MODEL_NAME")
-    if not HF_TOKEN or HF_TOKEN == "api_key":
-        raise ValueError("Invalid HF_TOKEN")
-
-
-def _format_action_str(action: ActionModel) -> str:
-    parts = ", ".join(f"{k}={v}" for k, v in action.parameters.items())
-    return f"{action.action_type}({parts})"
+Respond ONLY with JSON. No explanation. Keep output minimal."""
 
 
 def _build_prompt(obs: dict, step: int) -> str:
@@ -98,35 +125,36 @@ def _build_prompt(obs: dict, step: int) -> str:
     for h in obs.get("history", [])[-3:]:
         history_lines += (
             f"\n  {h.get('action')}({h.get('parameters', {})}) "
-            f"→ reward={h.get('reward', 0):+.2f}"
+            f"-> reward={h.get('reward', 0):+.2f}"
         )
+    return (
+        f"STEP {step} of {obs.get('max_steps', 25)}\n\n"
+        f"TASK:\n{obs.get('task_description', '')}\n\n"
+        f"ALERTS:\n{json.dumps(obs.get('alerts', []), indent=2)}\n\n"
+        f"LAST TOOL RESULT:\n{json.dumps(obs.get('tool_result'), indent=2)}\n\n"
+        f"HISTORY:{history_lines if history_lines else ' none'}\n\n"
+        f"Respond with JSON only."
+    )
 
-    return f"""STEP {step} of {obs.get('max_steps', 25)}
 
-TASK:
-{obs.get('task_description', '')}
+# ─── LLM client ──────────────────────────────────────────────────────────────
+class ParseError(ValueError):
+    pass
 
-ALERTS:
-{json.dumps(obs.get('alerts', []), indent=2)}
 
-LAST TOOL RESULT:
-{json.dumps(obs.get('tool_result'), indent=2)}
-
-HISTORY:{history_lines if history_lines else ' none'}
-
-Respond with JSON only."""
+def _validate_config() -> None:
+    if not API_BASE_URL or API_BASE_URL in ("", "base_url"):
+        raise ValueError("API_BASE_URL is not set")
+    if not MODEL_NAME or MODEL_NAME in ("", "model_name"):
+        raise ValueError("MODEL_NAME is not set")
+    if not HF_TOKEN:
+        raise ValueError("HF_TOKEN is not set")
 
 
 def _call_llm(messages: list[dict]) -> str:
-    validate_env()
-    try:
-        from openai import OpenAI
-    except ImportError:
-        raise RuntimeError("openai package not installed — run: pip install openai")
-
+    _validate_config()
     client   = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN, timeout=30.0)
     last_err = None
-
     for _ in range(3):
         try:
             resp = client.chat.completions.create(
@@ -139,88 +167,84 @@ def _call_llm(messages: list[dict]) -> str:
         except Exception as e:
             last_err = e
             time.sleep(1.5)
-
-    raise RuntimeError(f"LLM call failed after retries: {last_err}")
+    raise RuntimeError(f"LLM call failed after 3 retries: {last_err}")
 
 
 def _parse_action(raw: str) -> ActionModel:
-    """
-    Parse the LLM response into an ActionModel.
-    Raises ParseError if the response is invalid.
-    """
     valid_actions = {
-        "grep_logs",
-        "query_metrics",
-        "fetch_traces",
-        "query_dependencies",
-        "submit_diagnosis",
+        "grep_logs", "query_metrics", "fetch_traces",
+        "query_dependencies", "submit_diagnosis",
     }
-
-    raw = raw.strip()
-    raw = raw.replace("```json", "").replace("```", "")
-
+    raw = raw.strip().replace("```json", "").replace("```", "")
     start = raw.find("{")
     end   = raw.rfind("}")
     if start == -1 or end == -1:
-        raise ParseError(
-            "Response contains no JSON object. "
-            "Reply with ONLY a JSON object, no explanation."
-        )
+        raise ParseError("No JSON object found. Reply with ONLY a JSON object.")
 
-    json_str = raw[start : end + 1]
     try:
-        data = json.loads(json_str)
+        data = json.loads(raw[start : end + 1])
     except json.JSONDecodeError as exc:
-        raise ParseError(
-            f"Invalid JSON: {exc}.  "
-            "Fix the JSON syntax and reply with the corrected object only."
-        ) from exc
+        raise ParseError(f"Invalid JSON: {exc}. Fix syntax and reply with JSON only.") from exc
 
     action_type = data.get("action_type")
     if not action_type:
-        raise ParseError(
-            'Missing "action_type" field.  '
-            'Example: {"action_type": "query_dependencies", "parameters": {"service": "api-gateway"}}'
-        )
-
+        raise ParseError('Missing "action_type". Example: {"action_type": "grep_logs", ...}')
     if action_type not in valid_actions:
-        raise ParseError(
-            f'Unknown action_type "{action_type}".  '
-            f"Valid values: {sorted(valid_actions)}"
-        )
+        raise ParseError(f'Unknown action_type "{action_type}". Valid: {sorted(valid_actions)}')
 
     params = data.get("parameters", {})
-
     if action_type == "submit_diagnosis":
         if not params.get("root_cause_service") or not params.get("cause_type"):
-            raise ParseError(
-                "submit_diagnosis requires both 'root_cause_service' and 'cause_type' parameters."
-            )
-
+            raise ParseError("submit_diagnosis requires root_cause_service and cause_type.")
     if action_type == "query_metrics" and not params.get("metric_name"):
-        raise ParseError(
-            "query_metrics requires 'service' and 'metric_name' parameters."
-        )
+        raise ParseError("query_metrics requires service and metric_name.")
 
     return ActionModel(action_type=action_type, parameters=params)
 
 
+def _format_action_str(action: ActionModel) -> str:
+    parts = ", ".join(f"{k}={v}" for k, v in action.parameters.items())
+    return f"{action.action_type}({parts})"
+
+
+def _clamp_score(score: float) -> float:
+    """Ensure score is strictly between 0 and 1 (never 0.0 or 1.0) and snapped to 0.1 increments."""
+    return float(round(max(SCORE_MIN, min(SCORE_MAX, score)), 1))
+
+
+# ─── Grade the completed episode ─────────────────────────────────────────────
+def _grade_episode(info, actions_taken: list, env: IncidentRCAEnv) -> float:
+    try:
+        episode = {
+            "task_id":       TASK_ID,
+            "scenario":      {"root_cause": info.model_dump().get("ground_truth_root_cause")},
+            "actions_taken": actions_taken,
+            "final_state":   env.state(),
+            "info":          info.model_dump(),
+        }
+        result = IncidentRCAGrader().grade(episode)
+        return _clamp_score(result.score)
+    except Exception:
+        return SCORE_FALLBACK
+
+
+# ─── Main episode loop ───────────────────────────────────────────────────────
 def main() -> None:
     task = get_task(TASK_ID)
-    print(f"[START] task={TASK_ID} env={ENV_NAME} model={MODEL_NAME}")
+    log_start(task=TASK_ID, env=ENV_NAME, model=MODEL_NAME)
 
-    env    = IncidentRCAEnv(task_id=TASK_ID, seed=SEED)
-    obs    = env.reset()
+    env      = IncidentRCAEnv(task_id=TASK_ID, seed=SEED)
+    obs      = env.reset()
     obs_dict = obs.model_dump()
 
-    messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
-    rewards:  list[float] = []
+    messages:      list[dict]  = [{"role": "system", "content": SYSTEM_PROMPT}]
+    rewards:       list[float] = []
     actions_taken: list[tuple] = []
 
-    step  = 0
-    info  = None
-    done  = False
-    result = None
+    step   = 0
+    info   = None
+    done   = False
+    score  = SCORE_FALLBACK
 
     try:
         for step in range(1, task["max_steps"] + 1):
@@ -229,46 +253,40 @@ def main() -> None:
 
             messages.append({"role": "user", "content": _build_prompt(obs_dict, step)})
 
-            action_str = "unknown()"
+            action_str = "llm_error()"
             reward_val = 0.0
-            error_str  = "null"
+            error_str  = None
 
-           
-            llm_failed   = False
+            # ── Call LLM ──
             raw_response = None
             try:
                 raw_response = _call_llm(messages)
                 messages.append({"role": "assistant", "content": raw_response})
             except Exception as e:
-                llm_failed = True
-                error_str  = f"llm_error: {str(e)[:80]}"
-                raw_response = None
+                error_str = f"llm_error:{str(e)[:80]}"
+                log_step(step, action_str, reward_val, done=False, error=error_str)
+                rewards.append(reward_val)
+                break   # Cannot continue without LLM — emit [END] via finally
 
-            if llm_failed:
-                print(f"[ERROR] LLM failed repeatedly: {error_str}")
-                break
-
+            # ── Parse action ──
             try:
                 action = _parse_action(raw_response)
             except ParseError as pe:
-                hint = str(pe)[:200]
                 messages.append({
                     "role": "system",
                     "content": (
-                        f"Your previous response could not be parsed: {hint}  "
-                        "Reply with a single valid JSON object and nothing else."
+                        f"Parse failed: {str(pe)[:200]} "
+                        "Reply with a single valid JSON object only."
                     ),
                 })
-                error_str = f"parse_error (hint injected)"
-                rewards.append(0.0)
-                print(
-                    f"[STEP] step={step} action=parse_failed "
-                    f"reward=0.00 done=false error={error_str}"
-                )
-                continue
+                error_str = "parse_error"
+                log_step(step, "parse_failed()", reward_val, done=False, error=error_str)
+                rewards.append(reward_val)
+                continue   # retry this step with correction injected
 
+            # ── Execute action in env ──
+            action_str = _format_action_str(action)
             try:
-                action_str = _format_action_str(action)
                 obs, reward, done, info = env.step(action)
                 obs_dict   = obs.model_dump()
                 reward_val = getattr(reward, "total", 0.0)
@@ -278,36 +296,24 @@ def main() -> None:
                 done = False
 
             rewards.append(reward_val)
-            print(
-                f"[STEP] step={step} action={action_str} "
-                f"reward={reward_val:.2f} done={'true' if done else 'false'} "
-                f"error={error_str}"
-            )
+            log_step(step, action_str, reward_val, done, error_str)
 
             if done:
                 break
 
     finally:
-        score = 0.05
+        # ── Grade and emit [END] — always runs, even on exception ──
         if info is not None:
-            try:
-                episode = {
-                    "task_id":     TASK_ID,
-                    "scenario":    {"root_cause": info.model_dump().get("ground_truth_root_cause")},
-                    "actions_taken": actions_taken,
-                    "final_state": env.state(),
-                    "info":        info.model_dump(),
-                }
-                result = IncidentRCAGrader().grade(episode)
-                score  = result.score
-            except Exception as e:
-                score = 0.05
+            score = _grade_episode(info, actions_taken, env)
+        else:
+            score = SCORE_FALLBACK
 
-        success     = score >= 0.60 if (info is not None and result is not None) else False
-        rewards_str = ",".join(f"{r:.2f}" for r in rewards) if rewards else "0.00"
-        print(
-            f"[END] success={'true' if success else 'false'} "
-            f"steps={step} rewards={rewards_str}"
+        success = score >= 0.60
+        log_end(
+            success=success,
+            steps=step,
+            score=score,
+            rewards=rewards,
         )
 
 
