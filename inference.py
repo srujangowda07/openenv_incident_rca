@@ -36,7 +36,7 @@ from environment.env import IncidentRCAEnv, ActionModel
 from graders.grader import IncidentRCAGrader
 from tasks.task_definitions import get_task
 
-# ─── Configuration ────────────────────────────────────────────────────────────
+#Configuration 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://integrate.api.nvidia.com/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME",   "meta/llama-3.3-70b-instruct")
 HF_TOKEN     = os.getenv("HF_TOKEN",     "")
@@ -49,7 +49,7 @@ SCORE_MIN     = 0.10   # floor: never emit 0.0
 SCORE_MAX     = 0.90   # ceiling: never emit 1.0
 SCORE_FALLBACK = 0.10  # used when grader cannot run
 
-# ─── Logging helpers (flush=True on every call) ───────────────────────────────
+# Logging helpers (flush=True on every call) 
 def log_start(task: str, env: str, model: str) -> None:
     print(f"[START] task={task} env={env} model={model}", flush=True)
 
@@ -74,7 +74,7 @@ def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> No
     )
 
 
-# ─── Prompt builders ─────────────────────────────────────────────────────────
+# Prompt builders 
 SYSTEM_PROMPT = """You are an expert Site Reliability Engineer performing incident response.
 Diagnose the root cause service and failure type, then submit your diagnosis.
 
@@ -82,8 +82,18 @@ Allowed cause_type values:
 - "connection pool exhausted"
 - "memory leak OOMKilled"
 - "disk full no log rotation"
-- "missing index slow query full table scan"
+- "missing index slow query"
 - "cluster split-brain 2 nodes network partition"
+- "persistence file corruption"
+- "unbounded temporary files"
+- "port misconfiguration"
+- "database credentials failure"
+- "tls certificate expiry"
+- "dns misconfiguration"
+- "index corruption"
+- "config drift"
+- "rate limiter failure"
+- "unexpected service failure"
 
 Available actions — respond ONLY with valid JSON:
 
@@ -111,13 +121,14 @@ Rules:
 - Call submit_diagnosis as soon as strong evidence is found.
 
 Strategy:
-1. Read alerts to identify the alerting service.
-2. Use query_dependencies to trace the failure chain upstream.
-3. Use grep_logs on the suspected root service to confirm the issue.
-4. Use query_metrics only if logs are unclear.
-5. Call submit_diagnosis once root cause is confirmed.
-
-Respond ONLY with JSON. No explanation. Keep output minimal."""
+1. Identify the alerting service from the "ALERTS" section.
+2. Use query_dependencies on the alerting service to find its exact upstream dependencies.
+3. IMPORTANT: Use EXACT service names as listed in the dependency graph (e.g., use 'mysql-repl' if listed, not just 'mysql').
+4. If an upstream dependency exists, investigate it IMMEDIATELY. Trace the chain until you find the terminal service that has evidence of failure.
+5. Do NOT diagnose a "victim" service (one that is just failing because its dependency is down). Only diagnose the root cause service.
+6. Only call submit_diagnosis when you have physical evidence (from logs or metrics) of a specific failure mode in the list.
+7. If logs of a suspected service are empty, check its metrics for saturation or errors.
+"""
 
 
 def _build_prompt(obs: dict, step: int) -> str:
@@ -155,19 +166,24 @@ def _call_llm(messages: list[dict]) -> str:
     _validate_config()
     client   = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN, timeout=30.0)
     last_err = None
-    for _ in range(3):
+    backoff  = 2.0
+    for i in range(7):  # Increased to 7 retries for high-load periods
         try:
             resp = client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=messages,
                 temperature=0.1,
-                max_tokens=120,
+                max_tokens=256, # Increased for complex reasoning
             )
             return resp.choices[0].message.content
         except Exception as e:
             last_err = e
-            time.sleep(1.5)
-    raise RuntimeError(f"LLM call failed after 3 retries: {last_err}")
+            if "429" in str(e):
+                time.sleep(backoff)
+                backoff *= 2.0  
+            else:
+                time.sleep(2.0)
+    raise RuntimeError(f"LLM call failed after 7 retries: {last_err}")
 
 
 def _parse_action(raw: str) -> ActionModel:
@@ -302,8 +318,7 @@ def main() -> None:
                 break
 
     finally:
-        # ── Grade and emit [END] — always runs, even on exception ──
-        if info is not None:
+        if info is not None and env.state().get("done"):
             score = _grade_episode(info, actions_taken, env)
         else:
             score = SCORE_FALLBACK

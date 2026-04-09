@@ -117,6 +117,10 @@ This design ensures:
 | `easy_001` | API gateway returning 502 errors | `postgres-primary` — connection pool exhausted |
 | `easy_002` | Payment service pods crashing | `payment-service` — memory leak, unbounded cache |
 | `easy_003` | Logging service not ingesting | `logging-service` — disk full, log rotation disabled |
+| `easy_004` | Redis container crash loop | `redis-cache` — persistence file corruption |
+| `easy_005` | Storage node disk capacity 100% | `storage-node-3` — clean job failure |
+| `easy_006` | Auth-service unreachable on port 8080 | `auth-service` — TargetPort mismatch in k8s service |
+| `easy_007` | Billing DB authentication failure | `billing-db` — password rotation without secret update |
 
 ---
 
@@ -125,6 +129,10 @@ This design ensures:
 | Task | Scenario | Root Cause |
 |---|---|---|
 | `medium_001` | Two services degraded simultaneously | `mysql-primary` — schema migration dropped index |
+| `medium_002` | Connection pool saturation under load | `order-service` — peak traffic exceeded default |
+| `medium_003` | Steady heap growth in engine | `recommendation-engine` — static reference leak |
+| `medium_004` | API Gateway TLS certificate expired | `api-gateway` — cert-manager renewal challenge fail |
+| `medium_005` | Internal DNS resolution failure | `internal-proxy` — CoreDNS configmap corruption |
 
 ---
 
@@ -132,7 +140,11 @@ This design ensures:
 
 | Task | Scenario | Root Cause |
 |---|---|---|
-| `hard_001` | Five services failing simultaneously | `redis-cluster` — split-brain from network switch firmware upgrade |
+| `hard_001` | Five services failing simultaneously | `redis-cluster` — split-brain from network partition |
+| `hard_002` | Data inconsistency in user reporting | `mysql-repl` — Innodb index corruption |
+| `hard_003` | Etcd cluster split-brain | `etcd` — multi-AZ link failure |
+| `hard_004` | Inconsistent k8s mesh routing | `gateway` — Istio config drift during deployment |
+| `hard_005` | Global throttle-service overflow | `throttle-svc` — integer overflow in token bucket |
 
 ## Grader
 
@@ -212,7 +224,9 @@ The following environment variables are required:
 - `SEED` — optional run seed
 
 Valid `TASK_ID` values:
-`easy_001`, `easy_002`, `easy_003`, `medium_001`, `hard_001`
+- **Easy**: `easy_001` to `easy_007`
+- **Medium**: `medium_001` to `medium_005`
+- **Hard**: `hard_001` to `hard_005`
 
 Example `.env` configuration:
 ```env

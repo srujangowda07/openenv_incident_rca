@@ -329,7 +329,7 @@ def main():
     )
     parser.add_argument(
         "--task", type=str, default=None,
-        help="Task ID (e.g. easy_001, medium_001, hard_001)",
+        help="Task ID (e.g. easy_001-007, medium_001-005, hard_001-005)",
     )
     parser.add_argument(
         "--all", action="store_true",

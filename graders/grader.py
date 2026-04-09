@@ -13,7 +13,7 @@ class GradeResult:
 
 class IncidentRCAGrader:
     """
-    Deterministic grader.  Score range: 0.01 – 0.99.
+    Deterministic grader.  Score range: 0.10 – 0.90.
     Dimensions and weights match openenv.yaml exactly:
 
         root_cause_service  0.50
@@ -26,7 +26,6 @@ class IncidentRCAGrader:
 
     PASS_THRESHOLD = 0.60
 
-    # Dimension weights — keep in sync with openenv.yaml grader section.
     W_SERVICE  = 0.50
     W_CAUSE    = 0.30
     W_EVIDENCE = 0.20
@@ -54,7 +53,6 @@ class IncidentRCAGrader:
                 feedback=self._generate_feedback(breakdown, episode),
             )
         except Exception as e:
-            # Never fail grading; return a safe bounded score and diagnostic feedback.
             return GradeResult(
                 score=0.10,
                 breakdown={
@@ -85,7 +83,6 @@ class IncidentRCAGrader:
         if diagnosed_svc != ground_truth_svc:
             return 0.00
 
-        # Normalise both sides so "Connection Pool Exhausted" == "connection pool exhausted".
         ground_truth_cause = normalize_cause_type(
             root_cause.get("cause_type", "")
         )
@@ -160,7 +157,6 @@ class IncidentRCAGrader:
                     f"cause type mismatch — got: '{diagnosed_cause}', "
                     f"correct: '{rca_cause}'"
                 )
-            # If service was also wrong, the service line already covers this.
 
         if breakdown.get("tool_evidence", 0.0) == 0.0:
             lines.append(
@@ -181,19 +177,12 @@ def grade(payload: dict) -> float:
     Strictly returns a float between 0.10 and 0.90.
     """
     try:
-        # Resolve the case where the input might be nested or direct
         episode = payload
         if not isinstance(payload, dict):
             return 0.10
 
-        # If payload is just the agent's output without scenario context, 
-        # we can't grade root cause accurately, so return a safe baseline.
         if "scenario" not in payload:
-             # Basic heuristic if scenario is missing
-             score = 0.5
-             if payload.get("root_cause_service"): score += 0.2
-             if payload.get("cause_type"): score += 0.2
-             return float(max(0.10, min(0.90, score)))
+             return 0.10
 
         result = IncidentRCAGrader().grade(episode)
         # Snap to clean 0.1 increment and clamp strictly within (0, 1)

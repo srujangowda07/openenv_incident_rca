@@ -121,7 +121,8 @@ try:
     check("state() returns dict", check_state)
 
     def check_all_tasks():
-        for tid in ["easy_001", "easy_002", "easy_003", "medium_001", "hard_001"]:
+        # Test representative sample of all 17 tasks
+        for tid in ["easy_001", "easy_007", "medium_001", "medium_005", "hard_001", "hard_005"]:
             env = IncidentRCAEnv(task_id=tid, seed=42)
             obs = env.reset()
             assert obs.task_id == tid, f"task_id mismatch for {tid}"

@@ -3,66 +3,45 @@ import enum
 
 
 class CauseType(str, enum.Enum):
+    # Core types (Legacy + New)
     CONNECTION_POOL_EXHAUSTED = "connection pool exhausted"
     MEMORY_LEAK_OOM = "memory leak OOMKilled"
     DISK_FULL = "disk full no log rotation"
-    MISSING_INDEX = "missing index slow query full table scan"
+    MISSING_INDEX = "missing index slow query"
     SPLIT_BRAIN = "cluster split-brain 2 nodes network partition"
-
+    
+    # New Task Types
+    PERSISTENCE_CORRUPTION = "persistence file corruption"
+    TEMP_FILE_OVERFLOW = "unbounded temporary files"
+    PORT_CONFIG_MISMATCH = "port misconfiguration"
+    CREDENTIALS_FAILURE = "database credentials failure"
+    TLS_EXPIRY = "tls certificate expiry"
+    DNS_CONFIG_ERROR = "dns misconfiguration"
+    INDEX_CORRUPTION = "index corruption"
+    CONFIG_DRIFT = "config drift"
+    RATE_LIMITER_ERROR = "rate limiter failure"
+    UNEXPECTED_FAILURE = "unexpected service failure"
 
 
 CAUSE_MAPPINGS: dict[CauseType, list[str]] = {
-    CauseType.CONNECTION_POOL_EXHAUSTED: [
-        "connection pool exhausted",
-        "pool exhausted",
-        "too many clients",
-        "pgbouncer",
-        "max_connections",
-        "connection refused",
-    ],
-    CauseType.MEMORY_LEAK_OOM: [
-        "oomkilled",
-        "memory leak",
-        "out of memory",
-        "unbounded cache",
-        "memory limit exceeded",
-        "pod restart",
-        "oom",
-    ],
-    CauseType.DISK_FULL: [
-        "disk full",
-        "no space left",
-        "log rotation",
-        "logrotate",
-        "disk usage 100",
-        "write failure",
-    ],
-    CauseType.MISSING_INDEX: [
-        "missing index",
-        "slow query",
-        "full table scan",
-        "schema migration",
-        "dropped index",
-        "no index",
-    ],
-    CauseType.SPLIT_BRAIN: [
-        "split-brain",
-        "split brain",
-        "network partition",
-        "cluster split",
-        "minority partition",
-        "nodes unreachable",
-        "cluster_state=fail",
-    ],
+    CauseType.CONNECTION_POOL_EXHAUSTED: ["pool exhausted", "max_connections", "hikari", "pgbouncer"],
+    CauseType.MEMORY_LEAK_OOM: ["oomkilled", "memory leak", "heap growth", "gc overhead"],
+    CauseType.DISK_FULL: ["disk full", "no space left", "disk usage 100", "log rotation"],
+    CauseType.MISSING_INDEX: ["missing index", "slow query", "full table scan", "dropped index"],
+    CauseType.SPLIT_BRAIN: ["split-brain", "split brain", "network partition", "no leader"],
+    CauseType.PERSISTENCE_CORRUPTION: ["persistence file corruption", "rdb file", "corrupt aof"],
+    CauseType.TEMP_FILE_OVERFLOW: ["temporary files", "temp cleanup", "disk full storage node"],
+    CauseType.PORT_CONFIG_MISMATCH: ["port misconfiguration", "targetport", "connection refused"],
+    CauseType.CREDENTIALS_FAILURE: ["credentials failure", "password authentication", "access denied"],
+    CauseType.TLS_EXPIRY: ["tls certificate expiry", "ssl handshake failed", "expired"],
+    CauseType.DNS_CONFIG_ERROR: ["dns misconfiguration", "unknownhostexception", "coredns"],
+    CauseType.INDEX_CORRUPTION: ["index corruption", "corrupted page", "force_recovery"],
+    CauseType.CONFIG_DRIFT: ["config drift", "istio config", "proxy sync"],
+    CauseType.RATE_LIMITER_ERROR: ["rate limiter failure", "429 rate", "token bucket overflow"],
+    CauseType.UNEXPECTED_FAILURE: ["unexpected service failure", "internal server error"],
 }
 
-_PRIORITY_ORDER: list[CauseType] = [
-    CauseType.CONNECTION_POOL_EXHAUSTED,
-    CauseType.MEMORY_LEAK_OOM,
-    CauseType.DISK_FULL,
-    CauseType.MISSING_INDEX,
-    CauseType.SPLIT_BRAIN,
-]
+_PRIORITY_ORDER: list[CauseType] = list(CauseType)
 
 
 def normalize_cause_type(raw_input: str) -> str:

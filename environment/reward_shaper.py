@@ -4,12 +4,12 @@ from .canonical import normalize_cause_type, normalize_service
 
 
 REWARD_TABLE: dict[str, float] = {
-    "submit_diagnosis_perfect":   +0.99,   # exact service + cause match
+    "submit_diagnosis_perfect":   +0.90,   # exact service + cause match
     "submit_diagnosis_partial":   +0.50,   # correct service, wrong/unrecognised cause
     "submit_diagnosis_wrong":     -0.50,   # wrong service
     "submit_diagnosis_early":     -0.20,   # diagnosis before gathering any evidence
-    "reaching_root":              +0.30,   # first time agent queries the root cause service
-    "correct_dependency_step":    +0.10,   # queried a service in the cascade (not root)
+    "reaching_root":              +0.05,   # first time agent queries the root cause service
+    "correct_dependency_step":    +0.05,   # queried a service in the cascade (not root)
     "useful_exploration":         +0.05,   # trace implicates root cause but service already seen
     "wrong_direction":            -0.05,   # queried a service outside the cascade
     "repeated_action":            -0.10,   # exact same tool call repeated

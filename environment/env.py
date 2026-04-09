@@ -21,15 +21,20 @@ AVAILABLE_ACTIONS = [
     "submit_diagnosis",
 ]
 
-MAX_STEPS = {"easy": 15, "medium": 25, "hard": 40}
+
 
 
 class IncidentRCAEnv:
     def __init__(self, task_id: str = "easy_001", seed: int | None = None):
         self.task_id = task_id
         self.seed = seed if seed is not None else random.randint(0, 99_999)
-        difficulty = task_id.split("_")[0]
-        self.max_steps = MAX_STEPS.get(difficulty, 25)
+        # Use centralized task registry for constraints
+        try:
+            from tasks.task_definitions import get_task
+        except ImportError:
+            from ..tasks.task_definitions import get_task
+        task = get_task(task_id)
+        self.max_steps = task["max_steps"]
         self._generator = ScenarioGenerator(seed=self.seed)
         self._sm = StateManager()
         self._scenario: dict = {}
