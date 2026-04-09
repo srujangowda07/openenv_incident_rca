@@ -32,8 +32,8 @@ class IncidentRCAGrader:
     W_EVIDENCE = 0.20
     W_PENALTY_PER_INVALID   = 0.10
     W_PENALTY_WRONG_SERVICE = 0.20
-    MIN_SCORE_STRICT = 0.05
-    MAX_SCORE_STRICT = 0.95
+    MIN_SCORE_STRICT = 0.10
+    MAX_SCORE_STRICT = 0.90
 
     def grade(self, episode: dict) -> GradeResult:
         try:
@@ -55,7 +55,7 @@ class IncidentRCAGrader:
         except Exception as e:
             # Never fail grading; return a safe bounded score and diagnostic feedback.
             return GradeResult(
-                score=0.05,
+                score=0.10,
                 breakdown={
                     "root_cause_service": 0.0,
                     "cause_type": 0.0,
@@ -176,14 +176,14 @@ class IncidentRCAGrader:
 def grade(output) -> float:
     try:
         if not isinstance(output, dict):
-            return 0.05
+            return 0.10
 
         if "final_state" in output:
             try:
                 result = IncidentRCAGrader().grade(output)
-                return float(max(0.05, min(0.95, result.score)))
+                return float(max(0.10, min(0.90, result.score)))
             except Exception:
-                return 0.05
+                return 0.10
 
         service = str(output.get("root_cause_service", "")).strip().lower()
         cause   = str(output.get("cause_type", "")).strip().lower()
@@ -197,11 +197,11 @@ def grade(output) -> float:
 
         # FINAL SAFETY CLAMP
         if score <= 0:
-            return 0.05
+            return 0.10
         if score >= 1:
-            return 0.95
+            return 0.90
 
         return float(score)
 
     except Exception:
-        return 0.05
+        return 0.10

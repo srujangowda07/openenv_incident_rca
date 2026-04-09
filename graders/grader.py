@@ -32,8 +32,8 @@ class IncidentRCAGrader:
     W_EVIDENCE = 0.20
     W_PENALTY_PER_INVALID   = 0.10
     W_PENALTY_WRONG_SERVICE = 0.20
-    MIN_SCORE_STRICT = 0.01
-    MAX_SCORE_STRICT = 0.99
+    MIN_SCORE_STRICT = 0.10
+    MAX_SCORE_STRICT = 0.90
 
     def grade(self, episode: dict) -> GradeResult:
         try:
@@ -55,12 +55,12 @@ class IncidentRCAGrader:
         except Exception as e:
             # Never fail grading; return a safe bounded score and diagnostic feedback.
             return GradeResult(
-                    score=0.01,
+                score=0.10,
                 breakdown={
-                        "root_cause_service": 0.01,
-                        "cause_type": 0.01,
-                        "tool_evidence": 0.01,
-                        "penalties": 0.01,
+                    "root_cause_service": 0.10,
+                    "cause_type": 0.10,
+                    "tool_evidence": 0.10,
+                    "penalties": 0.00,
                 },
                 passed=False,
                 feedback=f"grader fallback due to error: {e}",
@@ -72,7 +72,7 @@ class IncidentRCAGrader:
         final_state = episode.get("final_state", {}) or {}
         ground_truth = normalize_service(root_cause.get("service", ""))
         diagnosed    = normalize_service(final_state.get("diagnosed_service") or "")
-        return self.W_SERVICE if diagnosed == ground_truth else 0.01
+        return self.W_SERVICE if diagnosed == ground_truth else 0.00
 
     def _score_cause_type(self, episode: dict) -> float:
         scenario = episode.get("scenario", {}) or {}
@@ -82,7 +82,7 @@ class IncidentRCAGrader:
         diagnosed_svc      = normalize_service(final_state.get("diagnosed_service") or "")
 
         if diagnosed_svc != ground_truth_svc:
-            return 0.01
+            return 0.00
 
         # Normalise both sides so "Connection Pool Exhausted" == "connection pool exhausted".
         ground_truth_cause = normalize_cause_type(
@@ -91,7 +91,7 @@ class IncidentRCAGrader:
         diagnosed_cause    = normalize_cause_type(
             final_state.get("diagnosed_cause") or ""
         )
-        return self.W_CAUSE if diagnosed_cause == ground_truth_cause else 0.01
+        return self.W_CAUSE if diagnosed_cause == ground_truth_cause else 0.00
 
     def _score_evidence(self, episode: dict) -> float:
         scenario = episode.get("scenario", {}) or {}
@@ -118,7 +118,7 @@ class IncidentRCAGrader:
                         if svc_match or error_match:
                             return self.W_EVIDENCE
 
-        return 0.01
+        return 0.00
 
     def _score_penalties(self, episode: dict) -> float:
         penalty = 0.0
@@ -177,6 +177,6 @@ def grade(episode: dict) -> float:
     """Module-level grader entrypoint for task links in openenv.yaml."""
     try:
         result = IncidentRCAGrader().grade(episode)
-        return max(0.01, min(0.99, float(result.score)))
+        return max(0.10, min(0.90, float(result.score)))
     except Exception:
-        return 0.01
+        return 0.10

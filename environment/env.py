@@ -46,9 +46,6 @@ class IncidentRCAEnv:
         except Exception as e:
             print(f"[ENV RESET ERROR] {e}")
             raise RuntimeError(f"Env reset failed: {e}")
-        except Exception as e:
-            print(f"[ENV RESET ERROR] {e}")
-            raise RuntimeError(f"Env reset failed: {e}")
 
     def step(self, action: ActionModel) -> tuple[ObservationModel, RewardModel, bool, InfoModel]:
         assert self._ready, "Call reset() before step()"

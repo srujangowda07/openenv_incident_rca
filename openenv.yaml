@@ -121,14 +121,14 @@ action_schemas:
 # Reward Space 
 reward_space:
   type: float
-  range: [-0.60, 0.99]
+  range: [-0.60, 0.90]
   shape: partial_multi_step
   description: >
     Step-wise deterministic rewards. Intermediate rewards guide the agent
     toward the correct investigation path. Terminal reward is given only at
     submit_diagnosis.
   reward_table:
-    submit_diagnosis_perfect: +0.99   # exact service + cause match
+    submit_diagnosis_perfect: +0.90   # exact service + cause match
     submit_diagnosis_partial: +0.50   # correct service, wrong cause
     submit_diagnosis_wrong:   -0.50   # wrong service
     grep_logs_relevant:       +0.05   # service is in the failure cascade
@@ -184,7 +184,7 @@ tasks:
 # Grader 
 grader:
   type: deterministic
-  score_range: [0.01, 0.99]
+  score_range: [0.10, 0.90]
   pass_threshold: 0.60
   dimensions:
     - name: root_cause_service

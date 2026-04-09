@@ -24,7 +24,8 @@ print("\n=== openenv validate ===\n")
 check("openenv.yaml exists",   lambda: open("openenv.yaml").close())
 check("Dockerfile exists",     lambda: open("Dockerfile").close())
 check("README.md exists",      lambda: open("README.md").close())
-check("requirements.txt exists", lambda: open("requirements.txt").close())
+check("pyproject.toml exists",   lambda: open("pyproject.toml").close())
+check("uv.lock exists",         lambda: open("uv.lock").close())
 
 
 def check_yaml():
@@ -196,13 +197,13 @@ def check_grader_range():
     }
 
     result = grader.grade(episode)
-    assert 0.0 < result.score < 1.0, f"Score out of range: {result.score}"
+    assert 0.10 <= result.score <= 0.90, f"Score out of range [0.1, 0.9]: {result.score}"
     assert result.score >= 0.60, (
         f"Perfect episode should pass threshold (0.60). Got: {result.score}"
     )
     assert result.passed, "Perfect episode should be marked as passed"
 
-check("grader score in (0.0, 1.0)", check_grader_range)
+check("grader score in [0.1, 0.9]", check_grader_range)
 
 
 
