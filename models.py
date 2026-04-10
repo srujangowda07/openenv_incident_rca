@@ -1,8 +1,9 @@
+from openenv.core.env_server.types import Action, Observation
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 
 
-class ActionModel(BaseModel):
+class ActionModel(Action):
     action_type: str = Field(
         ...,
         description="Type of action: grep_logs, query_metrics, fetch_traces, query_dependencies, submit_diagnosis",
@@ -13,7 +14,7 @@ class ActionModel(BaseModel):
     )
 
 
-class ObservationModel(BaseModel):
+class ObservationModel(Observation):
     step: int = Field(default=0)
     max_steps: int = Field(default=25)
     task_id: str = Field(default="")
@@ -22,9 +23,7 @@ class ObservationModel(BaseModel):
     tool_result: Optional[Dict] = Field(default=None)
     history: List[Dict] = Field(default_factory=list)
     available_actions: List[str] = Field(default_factory=list)
-    done: bool = Field(default=False)
-    reward: Optional[float] = Field(default=None)
-    metadata: Dict = Field(default_factory=dict)
+    # done, reward, metadata are inherited from Observation base
 
 
 class RewardModel(BaseModel):
