@@ -174,34 +174,20 @@ class IncidentRCAGrader:
         return " | ".join(lines) if lines else "correct"
 
 
-def grade(payload: dict) -> float:
+def grade(payload: dict) -> GradeResult:
+    """
+    OpenEnv entry point for grading.
+    Attempts to use IncidentRCAGrader for a full evaluation.
+    """
     try:
-        if not isinstance(payload, dict):
-            return 0.10
-
-        final_state = payload.get("final_state", {}) or {}
-        scenario = payload.get("scenario", {}) or {}
-        root = scenario.get("root_cause", {}) or {}
-
-        diagnosed_service = final_state.get("diagnosed_service")
-        diagnosed_cause = final_state.get("diagnosed_cause")
-
-        true_service = root.get("service")
-        true_cause = root.get("cause_type")
-
-        score = 0.10
-
-        if diagnosed_service and true_service:
-            if diagnosed_service == true_service:
-                score += 0.4
-
-                if diagnosed_cause and true_cause:
-                    if diagnosed_cause == true_cause:
-                        score += 0.4
-                    else:
-                        score += 0.2
-
-        return max(0.10, min(0.90, score))
-
-    except Exception:
-        return 0.10
+        # Standard OpenEnv passes the episode data as the payload.
+        # We delegate to the more sophisticated IncidentRCAGrader.
+        return IncidentRCAGrader().grade(payload)
+    except Exception as e:
+        # Fallback in case of catastrophic failure
+        return GradeResult(
+            score=0.10,
+            breakdown={"error": 1.0},
+            passed=False,
+            feedback=f"Critical grader failure: {e}",
+        )
