@@ -13,7 +13,7 @@ import uvicorn
 from pathlib import Path
 from openenv.core.env_server.http_server import create_app
 from openenv.core.env_server.types import EnvironmentMetadata
-from models import ActionModel, ObservationModel, TaskResponse
+from models import ActionModel, ObservationModel, TaskDetail
 from server.incident_rca_env_environment import IncidentRCAEnvironment
 
 
@@ -71,20 +71,15 @@ _TASKS = _load_tasks_from_yaml()
     "/tasks",
     tags=["Environment Info"],
     summary="List all tasks",
-    response_model=TaskResponse,
+    response_model=list[TaskDetail],
 )
 async def list_tasks():
     """
-    Return all tasks defined in this environment.
-
+    Returns the loaded tasks.
     Each task includes its grader entrypoint, required for hackathon
     Phase 2 validation ('Not enough tasks with graders' check).
     """
-    return {
-        "tasks": _TASKS,
-        "total": len(_TASKS),
-        "tasks_with_graders": sum(1 for t in _TASKS if t["has_grader"]),
-    }
+    return _TASKS
 
 
 def main():
