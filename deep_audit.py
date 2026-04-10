@@ -80,14 +80,14 @@ for t in tasks:
     )
 
 # ── 2. Grader importability ─────────────────────────────────────
-print("\n[2] graders.grader:grade importability")
+print("\n[2] grader:grade importability")
 
 
 def check_grader_import():
-    mod = importlib.import_module("graders.grader")
+    mod = importlib.import_module("grader")
     fn = getattr(mod, "grade", None)
     if fn is None or not callable(fn):
-        return "grade() not callable in graders.grader"
+        return "grade() not callable in grader"
     # Actually call it with a minimal payload
     result = fn(
         {
@@ -107,7 +107,7 @@ def check_grader_import():
     return True
 
 
-check("graders.grader:grade imports and runs", check_grader_import)
+check("grader:grade imports and runs", check_grader_import)
 
 # ── 3. Server app imports ────────────────────────────────────────
 print("\n[3] server.app imports")
@@ -264,9 +264,9 @@ for fname in [
     "pyproject.toml",
     "uv.lock",
     "server/app.py",
-    "graders/grader.py",
+    "grader.py",
     "models.py",
-    "graders/__init__.py",
+    # "graders/__init__.py",
 ]:
     check(
         f"{fname} exists",

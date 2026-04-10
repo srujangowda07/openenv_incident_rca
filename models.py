@@ -3,12 +3,14 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 
 
+from typing import Union
+
 class ActionModel(Action):
     action_type: str = Field(
         ...,
         description="Type of action: grep_logs, query_metrics, fetch_traces, query_dependencies, submit_diagnosis",
     )
-    parameters: Dict = Field(
+    parameters: Union[Dict, str] = Field(
         default_factory=dict,
         description="Action-specific parameters",
     )

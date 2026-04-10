@@ -150,143 +150,125 @@ reward_space:
 # Tasks 
 tasks:
   - id: easy_001
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "DB Connection Pool Exhaustion"
     difficulty: easy
     max_steps: 15
     description: "api-gateway 502 errors caused by postgres connection pool exhaustion"
 
   - id: easy_002
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Payment Service OOMKilled"
     difficulty: easy
     max_steps: 15
     description: "payment-service pods crashing due to memory leak in unbounded cache"
 
   - id: easy_003
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Disk Full — Logging Service"
     difficulty: easy
     max_steps: 15
     description: "logging-service down because disk full and log rotation disabled"
 
   - id: easy_004
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Redis Crash Loop"
     difficulty: easy
     max_steps: 15
     description: "Redis container crash loop causing cache failures"
 
   - id: easy_005
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Storage Node Disk Full"
     difficulty: easy
     max_steps: 15
     description: "storage-node-3 disk capacity 100% due to cleanup job failure"
 
   - id: easy_006
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Port Misconfiguration"
     difficulty: easy
     max_steps: 15
     description: "auth-service unreachable due to targetPort mismatch in k8s service"
 
   - id: easy_007
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "DB Credentials failure"
     difficulty: easy
     max_steps: 15
     description: "billing-service DB authentication failure due to rotated password"
 
   - id: medium_001
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Slow Query Cascade — Missing Index"
     difficulty: medium
     max_steps: 25
     description: "Schema migration dropped DB index causing 2-service cascade"
 
   - id: medium_002
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Connection Pool Exhaustion"
     difficulty: medium
     max_steps: 25
     description: "Database connection pool exhaustion under heavy load"
 
   - id: medium_003
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Memory Leak"
     difficulty: medium
     max_steps: 25
     description: "Steady heap growth in recommendation-engine leading to degradation"
 
   - id: medium_004
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "TLS Certificate Expiry"
     difficulty: medium
     max_steps: 25
     description: "api-gateway TLS certificate expired causing handshake failures"
 
   - id: medium_005
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "DNS Misconfiguration"
     difficulty: medium
     max_steps: 25
     description: "internal-proxy DNS resolution failure due to CoreDNS corruption"
 
   - id: hard_001
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Redis Cluster Split-Brain"
     difficulty: hard
     max_steps: 40
     description: "Network partition caused Redis split-brain affecting 6 dependent services"
 
   - id: hard_002
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Index Corruption"
     difficulty: hard
     max_steps: 40
     description: "Innodb index corruption causing data parity failure in report-svc"
 
   - id: hard_003
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Distributed Split-Brain"
     difficulty: hard
     max_steps: 40
     description: "Network partition causes split-brain in distributed Etcd cluster"
 
   - id: hard_004
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Config Drift"
     difficulty: hard
     max_steps: 40
     description: "Inconsistent mesh routing due to Istio configuration drift"
 
   - id: hard_005
-    grader: "graders.grader:grade"
+    grader: "grader:grade"
     name: "Rate Limiter Failure"
     difficulty: hard
     max_steps: 40
     description: "Global throttle-service dropping valid traffic due to overflow error"
 
-# Grader configuration
-grader:
-  type: custom
-  entrypoint: "graders.grader:grade"
-  score_range: [0.10, 0.90]
-  pass_threshold: 0.60
-  dimensions:
-    - name: root_cause_service
-      weight: 0.50
-      description: "Exact match on root cause service name"
-    - name: cause_type
-      weight: 0.30
-      description: "Exact match on cause type"
-    - name: tool_evidence
-      weight: 0.20
-      description: "Agent queried root cause service"
-    - name: penalties
-      weight: variable
-      description: "Deductions for invalid actions and wrong diagnosis"
+
 
 
 # Non-functional 

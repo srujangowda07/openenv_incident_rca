@@ -56,8 +56,17 @@ class IncidentRCAEnv:
         assert self._ready, "Call reset() before step()"
         assert not self._sm.state.done, "Episode done — call reset()"
 
+        import json
+        params = action.parameters
+        if isinstance(params, str):
+            try:
+                params = json.loads(params)
+            except Exception:
+                params = {}
+        action.parameters = params
+
         self._sm.increment_step()
-        is_duplicate = self._sm.record_tool(action.action_type, action.parameters)
+        is_duplicate = self._sm.record_tool(action.action_type, params)
         self._sm.set_tool_result(None)
 
         total, breakdown, reason = self._dispatch(action, is_duplicate)

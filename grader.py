@@ -4,6 +4,7 @@ from environment.canonical import normalize_cause_type, normalize_service
 
 import sys
 import os
+print("🔥 GRADER FILE EXECUTED")
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

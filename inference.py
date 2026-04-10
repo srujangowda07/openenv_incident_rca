@@ -35,7 +35,7 @@ except ImportError:
 from openai import OpenAI
 
 from environment.env import IncidentRCAEnv, ActionModel
-from graders.grader import IncidentRCAGrader
+from grader import IncidentRCAGrader
 from tasks.task_definitions import get_task
 
 # Configuration
