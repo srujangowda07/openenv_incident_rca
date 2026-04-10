@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI
 from openenv.core.env_server.http_server import create_app
 from models import ActionModel, ObservationModel
@@ -24,4 +25,12 @@ def health():
 def root():
     return {"status": "running"}
 
+# Mount OpenEnv at root
 app.mount("/", env_app)
+
+def main():
+    """Main entry point for multi-mode deployment."""
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
