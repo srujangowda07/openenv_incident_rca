@@ -9,7 +9,7 @@ class CauseType(str, enum.Enum):
     DISK_FULL = "disk full no log rotation"
     MISSING_INDEX = "missing index slow query"
     SPLIT_BRAIN = "cluster split-brain 2 nodes network partition"
-    
+
     # New Task Types
     PERSISTENCE_CORRUPTION = "persistence file corruption"
     TEMP_FILE_OVERFLOW = "unbounded temporary files"
@@ -24,21 +24,77 @@ class CauseType(str, enum.Enum):
 
 
 CAUSE_MAPPINGS: dict[CauseType, list[str]] = {
-    CauseType.CONNECTION_POOL_EXHAUSTED: ["pool exhausted", "max_connections", "hikari", "pgbouncer"],
-    CauseType.MEMORY_LEAK_OOM: ["oomkilled", "memory leak", "heap growth", "gc overhead"],
-    CauseType.DISK_FULL: ["disk full", "no space left", "disk usage 100", "log rotation"],
-    CauseType.MISSING_INDEX: ["missing index", "slow query", "full table scan", "dropped index"],
-    CauseType.SPLIT_BRAIN: ["split-brain", "split brain", "network partition", "no leader"],
-    CauseType.PERSISTENCE_CORRUPTION: ["persistence file corruption", "rdb file", "corrupt aof"],
-    CauseType.TEMP_FILE_OVERFLOW: ["temporary files", "temp cleanup", "disk full storage node"],
-    CauseType.PORT_CONFIG_MISMATCH: ["port misconfiguration", "targetport", "connection refused"],
-    CauseType.CREDENTIALS_FAILURE: ["credentials failure", "password authentication", "access denied"],
+    CauseType.CONNECTION_POOL_EXHAUSTED: [
+        "pool exhausted",
+        "max_connections",
+        "hikari",
+        "pgbouncer",
+    ],
+    CauseType.MEMORY_LEAK_OOM: [
+        "oomkilled",
+        "memory leak",
+        "heap growth",
+        "gc overhead",
+    ],
+    CauseType.DISK_FULL: [
+        "disk full",
+        "no space left",
+        "disk usage 100",
+        "log rotation",
+    ],
+    CauseType.MISSING_INDEX: [
+        "missing index",
+        "slow query",
+        "full table scan",
+        "dropped index",
+    ],
+    CauseType.SPLIT_BRAIN: [
+        "split-brain",
+        "split brain",
+        "network partition",
+        "no leader",
+    ],
+    CauseType.PERSISTENCE_CORRUPTION: [
+        "persistence file corruption",
+        "rdb file",
+        "corrupt aof",
+    ],
+    CauseType.TEMP_FILE_OVERFLOW: [
+        "temporary files",
+        "temp cleanup",
+        "disk full storage node",
+    ],
+    CauseType.PORT_CONFIG_MISMATCH: [
+        "port misconfiguration",
+        "targetport",
+        "connection refused",
+    ],
+    CauseType.CREDENTIALS_FAILURE: [
+        "credentials failure",
+        "password authentication",
+        "access denied",
+    ],
     CauseType.TLS_EXPIRY: ["tls certificate expiry", "ssl handshake failed", "expired"],
-    CauseType.DNS_CONFIG_ERROR: ["dns misconfiguration", "unknownhostexception", "coredns"],
-    CauseType.INDEX_CORRUPTION: ["index corruption", "corrupted page", "force_recovery"],
+    CauseType.DNS_CONFIG_ERROR: [
+        "dns misconfiguration",
+        "unknownhostexception",
+        "coredns",
+    ],
+    CauseType.INDEX_CORRUPTION: [
+        "index corruption",
+        "corrupted page",
+        "force_recovery",
+    ],
     CauseType.CONFIG_DRIFT: ["config drift", "istio config", "proxy sync"],
-    CauseType.RATE_LIMITER_ERROR: ["rate limiter failure", "429 rate", "token bucket overflow"],
-    CauseType.UNEXPECTED_FAILURE: ["unexpected service failure", "internal server error"],
+    CauseType.RATE_LIMITER_ERROR: [
+        "rate limiter failure",
+        "429 rate",
+        "token bucket overflow",
+    ],
+    CauseType.UNEXPECTED_FAILURE: [
+        "unexpected service failure",
+        "internal server error",
+    ],
 }
 
 _PRIORITY_ORDER: list[CauseType] = list(CauseType)

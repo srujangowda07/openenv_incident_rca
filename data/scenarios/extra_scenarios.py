@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 
 
-def _log(base: datetime, offset_min: int, service: str,
-         level: str, message: str) -> dict:
+def _log(
+    base: datetime, offset_min: int, service: str, level: str, message: str
+) -> dict:
     t = base + timedelta(minutes=offset_min)
     return {
         "timestamp": t.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -14,8 +15,7 @@ def _log(base: datetime, offset_min: int, service: str,
 
 def _gen_timestamps(base: datetime, count: int) -> list[str]:
     return [
-        (base + timedelta(minutes=i - count)).strftime("%H:%M")
-        for i in range(count)
+        (base + timedelta(minutes=i - count)).strftime("%H:%M") for i in range(count)
     ]
 
 
@@ -23,6 +23,7 @@ def _gen_timestamps(base: datetime, count: int) -> list[str]:
 #  MEDIUM_002: CPU Throttling Cascade
 #  Root cause: cpu_limit set too low in kubernetes deployment
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def medium_cpu_throttling() -> dict:
     base = datetime(2026, 3, 20, 16, 0, 0)
@@ -33,24 +34,42 @@ def medium_cpu_throttling() -> dict:
             "5 services in scope. Find what the deploy changed that caused this."
         ),
         "alerts": [
-            {"id": "ALT-001", "service": "checkout-service", "severity": "critical",
-             "message": "p99 latency 14s — SLA breach", "time": "16:02:10"},
-            {"id": "ALT-002", "service": "pricing-engine", "severity": "warning",
-             "message": "CPU throttling: 92% of CPU time throttled", "time": "16:01:55"},
-            {"id": "ALT-003", "service": "cart-service", "severity": "warning",
-             "message": "Upstream pricing-engine responding slowly", "time": "16:02:30"},
+            {
+                "id": "ALT-001",
+                "service": "checkout-service",
+                "severity": "critical",
+                "message": "p99 latency 14s — SLA breach",
+                "time": "16:02:10",
+            },
+            {
+                "id": "ALT-002",
+                "service": "pricing-engine",
+                "severity": "warning",
+                "message": "CPU throttling: 92% of CPU time throttled",
+                "time": "16:01:55",
+            },
+            {
+                "id": "ALT-003",
+                "service": "cart-service",
+                "severity": "warning",
+                "message": "Upstream pricing-engine responding slowly",
+                "time": "16:02:30",
+            },
         ],
         "services": [
-            {"name": "api-gateway", "status": "healthy",
-             "calls": ["checkout-service"]},
-            {"name": "checkout-service", "status": "degraded",
-             "calls": ["cart-service", "pricing-engine"]},
-            {"name": "cart-service", "status": "degraded",
-             "calls": ["pricing-engine"]},
-            {"name": "pricing-engine", "status": "throttled",
-             "calls": ["product-catalog"]},
-            {"name": "product-catalog", "status": "healthy",
-             "calls": []},
+            {"name": "api-gateway", "status": "healthy", "calls": ["checkout-service"]},
+            {
+                "name": "checkout-service",
+                "status": "degraded",
+                "calls": ["cart-service", "pricing-engine"],
+            },
+            {"name": "cart-service", "status": "degraded", "calls": ["pricing-engine"]},
+            {
+                "name": "pricing-engine",
+                "status": "throttled",
+                "calls": ["product-catalog"],
+            },
+            {"name": "product-catalog", "status": "healthy", "calls": []},
         ],
         "dependency_graph": {
             "api-gateway": ["checkout-service"],
@@ -60,36 +79,78 @@ def medium_cpu_throttling() -> dict:
             "product-catalog": [],
         },
         "logs": [
-            _log(base, -5, "pricing-engine", "INFO",
-                 "New deploy: kubernetes cpu_limit changed from 2000m to 100m"),
-            _log(base, -3, "pricing-engine", "WARN",
-                 "CPU throttled: container limited to 100m cores — 92% throttle ratio"),
-            _log(base, -2, "pricing-engine", "WARN",
-                 "Request processing time 8000ms — CPU starvation"),
-            _log(base, -1, "cart-service", "ERROR",
-                 "pricing-engine timeout after 10000ms"),
-            _log(base, 0, "checkout-service", "ERROR",
-                 "Upstream pricing-engine and cart-service both timing out"),
-            _log(base, 1, "api-gateway", "WARN",
-                 "checkout-service p99 latency 14000ms"),
+            _log(
+                base,
+                -5,
+                "pricing-engine",
+                "INFO",
+                "New deploy: kubernetes cpu_limit changed from 2000m to 100m",
+            ),
+            _log(
+                base,
+                -3,
+                "pricing-engine",
+                "WARN",
+                "CPU throttled: container limited to 100m cores — 92% throttle ratio",
+            ),
+            _log(
+                base,
+                -2,
+                "pricing-engine",
+                "WARN",
+                "Request processing time 8000ms — CPU starvation",
+            ),
+            _log(
+                base,
+                -1,
+                "cart-service",
+                "ERROR",
+                "pricing-engine timeout after 10000ms",
+            ),
+            _log(
+                base,
+                0,
+                "checkout-service",
+                "ERROR",
+                "Upstream pricing-engine and cart-service both timing out",
+            ),
+            _log(
+                base, 1, "api-gateway", "WARN", "checkout-service p99 latency 14000ms"
+            ),
         ],
         "metrics": [
-            {"service": "pricing-engine", "metric": "cpu_throttle_ratio",
-             "values": [0.01, 0.02, 0.88, 0.91, 0.92, 0.92], "unit": "ratio",
-             "timestamps": _gen_timestamps(base, 6)},
-            {"service": "pricing-engine", "metric": "cpu_limit_millicores",
-             "values": [2000, 2000, 100, 100, 100, 100], "unit": "millicores",
-             "timestamps": _gen_timestamps(base, 6)},
-            {"service": "checkout-service", "metric": "p99_latency_ms",
-             "values": [290, 310, 2100, 9000, 13800, 14000], "unit": "ms",
-             "timestamps": _gen_timestamps(base, 6)},
+            {
+                "service": "pricing-engine",
+                "metric": "cpu_throttle_ratio",
+                "values": [0.01, 0.02, 0.88, 0.91, 0.92, 0.92],
+                "unit": "ratio",
+                "timestamps": _gen_timestamps(base, 6),
+            },
+            {
+                "service": "pricing-engine",
+                "metric": "cpu_limit_millicores",
+                "values": [2000, 2000, 100, 100, 100, 100],
+                "unit": "millicores",
+                "timestamps": _gen_timestamps(base, 6),
+            },
+            {
+                "service": "checkout-service",
+                "metric": "p99_latency_ms",
+                "values": [290, 310, 2100, 9000, 13800, 14000],
+                "unit": "ms",
+                "timestamps": _gen_timestamps(base, 6),
+            },
         ],
         "traces": {
             "req-chk-3a1b": [
                 {"service": "api-gateway", "duration_ms": 14050, "status": "ok"},
                 {"service": "checkout-service", "duration_ms": 14000, "status": "slow"},
-                {"service": "pricing-engine", "duration_ms": 13900, "status": "slow",
-                 "error": "CPU throttled — container limited to 100m millicores"},
+                {
+                    "service": "pricing-engine",
+                    "duration_ms": 13900,
+                    "status": "slow",
+                    "error": "CPU throttled — container limited to 100m millicores",
+                },
             ]
         },
         "runbooks": {
@@ -120,6 +181,7 @@ def medium_cpu_throttling() -> dict:
 #  Red herring: a noisy but unrelated certificate expiry alert
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def hard_dns_failure() -> dict:
     base = datetime(2026, 3, 21, 7, 0, 0)
     return {
@@ -130,34 +192,74 @@ def hard_dns_failure() -> dict:
             "10 services in scope. Find the single root cause."
         ),
         "alerts": [
-            {"id": "ALT-001", "service": "payment-gateway", "severity": "critical",
-             "message": "stripe.com connection failed: Name or service not known", "time": "07:03:00"},
-            {"id": "ALT-002", "service": "email-service", "severity": "critical",
-             "message": "smtp.mailgun.org resolution failed", "time": "07:03:05"},
-            {"id": "ALT-003", "service": "auth-service", "severity": "critical",
-             "message": "oauth2.googleapis.com DNS lookup failed", "time": "07:03:10"},
-            {"id": "ALT-004", "service": "cdn-service", "severity": "warning",
-             "message": "TLS certificate expires in 2 days — renewal pending",  # RED HERRING
-             "time": "07:00:00"},
-            {"id": "ALT-005", "service": "monitoring", "severity": "critical",
-             "message": "datadog.com unreachable — metrics pipeline down", "time": "07:03:15"},
-            {"id": "ALT-006", "service": "feature-flags", "severity": "warning",
-             "message": "launchdarkly.com connection timeout", "time": "07:03:20"},
-            {"id": "ALT-007", "service": "core-dns", "severity": "critical",
-             "message": "Upstream DNS resolver 8.8.8.8 unreachable from pod network",
-             "time": "07:02:50"},
+            {
+                "id": "ALT-001",
+                "service": "payment-gateway",
+                "severity": "critical",
+                "message": "stripe.com connection failed: Name or service not known",
+                "time": "07:03:00",
+            },
+            {
+                "id": "ALT-002",
+                "service": "email-service",
+                "severity": "critical",
+                "message": "smtp.mailgun.org resolution failed",
+                "time": "07:03:05",
+            },
+            {
+                "id": "ALT-003",
+                "service": "auth-service",
+                "severity": "critical",
+                "message": "oauth2.googleapis.com DNS lookup failed",
+                "time": "07:03:10",
+            },
+            {
+                "id": "ALT-004",
+                "service": "cdn-service",
+                "severity": "warning",
+                "message": "TLS certificate expires in 2 days — renewal pending",  # RED HERRING
+                "time": "07:00:00",
+            },
+            {
+                "id": "ALT-005",
+                "service": "monitoring",
+                "severity": "critical",
+                "message": "datadog.com unreachable — metrics pipeline down",
+                "time": "07:03:15",
+            },
+            {
+                "id": "ALT-006",
+                "service": "feature-flags",
+                "severity": "warning",
+                "message": "launchdarkly.com connection timeout",
+                "time": "07:03:20",
+            },
+            {
+                "id": "ALT-007",
+                "service": "core-dns",
+                "severity": "critical",
+                "message": "Upstream DNS resolver 8.8.8.8 unreachable from pod network",
+                "time": "07:02:50",
+            },
         ],
         "services": [
             {"name": "payment-gateway", "status": "critical", "calls": ["stripe-api"]},
             {"name": "email-service", "status": "critical", "calls": ["mailgun-api"]},
             {"name": "auth-service", "status": "critical", "calls": ["google-oauth"]},
             {"name": "monitoring", "status": "degraded", "calls": ["datadog-api"]},
-            {"name": "feature-flags", "status": "degraded", "calls": ["launchdarkly-api"]},
+            {
+                "name": "feature-flags",
+                "status": "degraded",
+                "calls": ["launchdarkly-api"],
+            },
             {"name": "cdn-service", "status": "warning", "calls": []},
             {"name": "core-dns", "status": "critical", "calls": ["upstream-resolver"]},
             {"name": "upstream-resolver", "status": "unreachable", "calls": []},
-            {"name": "api-gateway", "status": "degraded",
-             "calls": ["payment-gateway", "auth-service"]},
+            {
+                "name": "api-gateway",
+                "status": "degraded",
+                "calls": ["payment-gateway", "auth-service"],
+            },
         ],
         "dependency_graph": {
             "api-gateway": ["payment-gateway", "auth-service"],
@@ -171,46 +273,111 @@ def hard_dns_failure() -> dict:
             "upstream-resolver": [],
         },
         "logs": [
-            _log(base, -5, "network-ops", "INFO",
-                 "Firewall rule update: egress ACL rule 47 modified — UDP port 53 blocked on prod-vpc"),
-            _log(base, -3, "core-dns", "ERROR",
-                 "Upstream resolver 8.8.8.8:53 unreachable — UDP 53 blocked by firewall ACL"),
-            _log(base, -2, "core-dns", "CRITICAL",
-                 "All external DNS resolution failing — serving NXDOMAIN for all external hostnames"),
-            _log(base, 0, "payment-gateway", "ERROR",
-                 "socket.gaierror: [Errno -2] Name or service not known: stripe.com"),
-            _log(base, 0, "auth-service", "ERROR",
-                 "dns.resolver.NXDOMAIN: oauth2.googleapis.com"),
-            _log(base, 0, "email-service", "ERROR",
-                 "smtplib.SMTPConnectError: Could not resolve smtp.mailgun.org"),
-            _log(base, 0, "cdn-service", "WARN",
-                 "TLS certificate expires 2026-03-23 — acme renewal job pending"),  # Red herring
-            _log(base, 1, "monitoring", "ERROR",
-                 "Failed to flush metrics: datadog.com NXDOMAIN"),
-            _log(base, 1, "feature-flags", "ERROR",
-                 "launchdarkly SDK init failed: connection timeout on DNS lookup"),
+            _log(
+                base,
+                -5,
+                "network-ops",
+                "INFO",
+                "Firewall rule update: egress ACL rule 47 modified — UDP port 53 blocked on prod-vpc",
+            ),
+            _log(
+                base,
+                -3,
+                "core-dns",
+                "ERROR",
+                "Upstream resolver 8.8.8.8:53 unreachable — UDP 53 blocked by firewall ACL",
+            ),
+            _log(
+                base,
+                -2,
+                "core-dns",
+                "CRITICAL",
+                "All external DNS resolution failing — serving NXDOMAIN for all external hostnames",
+            ),
+            _log(
+                base,
+                0,
+                "payment-gateway",
+                "ERROR",
+                "socket.gaierror: [Errno -2] Name or service not known: stripe.com",
+            ),
+            _log(
+                base,
+                0,
+                "auth-service",
+                "ERROR",
+                "dns.resolver.NXDOMAIN: oauth2.googleapis.com",
+            ),
+            _log(
+                base,
+                0,
+                "email-service",
+                "ERROR",
+                "smtplib.SMTPConnectError: Could not resolve smtp.mailgun.org",
+            ),
+            _log(
+                base,
+                0,
+                "cdn-service",
+                "WARN",
+                "TLS certificate expires 2026-03-23 — acme renewal job pending",
+            ),  # Red herring
+            _log(
+                base,
+                1,
+                "monitoring",
+                "ERROR",
+                "Failed to flush metrics: datadog.com NXDOMAIN",
+            ),
+            _log(
+                base,
+                1,
+                "feature-flags",
+                "ERROR",
+                "launchdarkly SDK init failed: connection timeout on DNS lookup",
+            ),
         ],
         "metrics": [
-            {"service": "core-dns", "metric": "dns_resolution_success_rate",
-             "values": [99.9, 99.8, 100.0, 0.0, 0.0, 0.0], "unit": "percent",
-             "timestamps": _gen_timestamps(base, 6)},
-            {"service": "payment-gateway", "metric": "external_call_success_rate",
-             "values": [99.5, 99.3, 99.2, 0.0, 0.0, 0.0], "unit": "percent",
-             "timestamps": _gen_timestamps(base, 6)},
-            {"service": "cdn-service", "metric": "cert_days_remaining",
-             "values": [4, 4, 4, 2, 2, 2], "unit": "days",
-             "timestamps": _gen_timestamps(base, 6)},  # Red herring metric
+            {
+                "service": "core-dns",
+                "metric": "dns_resolution_success_rate",
+                "values": [99.9, 99.8, 100.0, 0.0, 0.0, 0.0],
+                "unit": "percent",
+                "timestamps": _gen_timestamps(base, 6),
+            },
+            {
+                "service": "payment-gateway",
+                "metric": "external_call_success_rate",
+                "values": [99.5, 99.3, 99.2, 0.0, 0.0, 0.0],
+                "unit": "percent",
+                "timestamps": _gen_timestamps(base, 6),
+            },
+            {
+                "service": "cdn-service",
+                "metric": "cert_days_remaining",
+                "values": [4, 4, 4, 2, 2, 2],
+                "unit": "days",
+                "timestamps": _gen_timestamps(base, 6),
+            },  # Red herring metric
         ],
         "traces": {
             "req-pay-7g8h": [
                 {"service": "api-gateway", "duration_ms": 3000, "status": "error"},
-                {"service": "payment-gateway", "duration_ms": 2990, "status": "error",
-                 "error": "DNS resolution failed: stripe.com NXDOMAIN — core-dns upstream blocked"},
+                {
+                    "service": "payment-gateway",
+                    "duration_ms": 2990,
+                    "status": "error",
+                    "error": "DNS resolution failed: stripe.com NXDOMAIN — core-dns upstream blocked",
+                },
             ],
             "req-auth-2e3f": [
                 {"service": "api-gateway", "duration_ms": 3000, "status": "error"},
-                {"service": "auth-service", "duration_ms": 2985, "status": "error",
-                 "error": "DNS resolution failed: oauth2.googleapis.com — upstream resolver unreachable"},
+                {
+                    "service": "auth-service",
+                    "duration_ms": 2985,
+                    "status": "error",
+                    "error": "DNS resolution failed: oauth2.googleapis.com — upstream resolver unreachable",
+                },
             ],
         },
         "runbooks": {
@@ -237,8 +404,13 @@ def hard_dns_failure() -> dict:
                 "rollback network ACL change from 06:55 deployment",
             ],
             "cascade": [
-                "core-dns", "payment-gateway", "auth-service",
-                "email-service", "monitoring", "feature-flags", "api-gateway"
+                "core-dns",
+                "payment-gateway",
+                "auth-service",
+                "email-service",
+                "monitoring",
+                "feature-flags",
+                "api-gateway",
             ],
         },
     }

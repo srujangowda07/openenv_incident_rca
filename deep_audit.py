@@ -2,6 +2,7 @@
 Deep audit script — checks for ALL silent killers that could fail platform validation.
 Run: python deep_audit.py
 """
+
 import sys
 import traceback
 import yaml
@@ -33,21 +34,55 @@ print("\n=== DEEP SILENT KILLER AUDIT ===\n")
 print("[1] openenv.yaml")
 cfg = yaml.safe_load((ROOT / "openenv.yaml").read_text(encoding="utf-8"))
 
-check("spec_version present", lambda: True if "spec_version" in cfg else "MISSING spec_version")
+check(
+    "spec_version present",
+    lambda: True if "spec_version" in cfg else "MISSING spec_version",
+)
 check("name present", lambda: True if cfg.get("name") else "MISSING name")
-check("tasks is a list", lambda: True if isinstance(cfg.get("tasks"), list) else f"tasks type={type(cfg.get('tasks')).__name__}")
-check("17 tasks defined", lambda: True if len(cfg.get("tasks", [])) == 17 else f"got {len(cfg.get('tasks', []))} tasks")
-check("3 difficulty levels", lambda: True if len({t.get("difficulty") for t in cfg.get("tasks", [])}) == 3 else "not 3 difficulties")
+check(
+    "tasks is a list",
+    lambda: (
+        True
+        if isinstance(cfg.get("tasks"), list)
+        else f"tasks type={type(cfg.get('tasks')).__name__}"
+    ),
+)
+check(
+    "17 tasks defined",
+    lambda: (
+        True
+        if len(cfg.get("tasks", [])) == 17
+        else f"got {len(cfg.get('tasks', []))} tasks"
+    ),
+)
+check(
+    "3 difficulty levels",
+    lambda: (
+        True
+        if len({t.get("difficulty") for t in cfg.get("tasks", [])}) == 3
+        else "not 3 difficulties"
+    ),
+)
 
 tasks = cfg.get("tasks", [])
 for t in tasks:
     tid = t.get("id", "?")
-    check(f"task '{tid}' has grader field", lambda t=t, tid=tid: True if t.get("grader") else f"MISSING grader on {tid}")
-    check(f"task '{tid}' grader is entrypoint", lambda t=t, tid=tid:
-        True if ":" in str(t.get("grader", "")) else f"grader is NOT a python entrypoint: '{t.get('grader')}'")
+    check(
+        f"task '{tid}' has grader field",
+        lambda t=t, tid=tid: True if t.get("grader") else f"MISSING grader on {tid}",
+    )
+    check(
+        f"task '{tid}' grader is entrypoint",
+        lambda t=t, tid=tid: (
+            True
+            if ":" in str(t.get("grader", ""))
+            else f"grader is NOT a python entrypoint: '{t.get('grader')}'"
+        ),
+    )
 
 # ── 2. Grader importability ─────────────────────────────────────
 print("\n[2] graders.grader:grade importability")
+
 
 def check_grader_import():
     mod = importlib.import_module("graders.grader")
@@ -55,19 +90,29 @@ def check_grader_import():
     if fn is None or not callable(fn):
         return "grade() not callable in graders.grader"
     # Actually call it with a minimal payload
-    result = fn({"scenario": {"root_cause": {"service": "test-svc", "cause_type": "test"}},
-                 "final_state": {"diagnosed_service": "test-svc", "diagnosed_cause": "test", "action_history": []},
-                 "info": {"invalid_actions": 0}})
+    result = fn(
+        {
+            "scenario": {"root_cause": {"service": "test-svc", "cause_type": "test"}},
+            "final_state": {
+                "diagnosed_service": "test-svc",
+                "diagnosed_cause": "test",
+                "action_history": [],
+            },
+            "info": {"invalid_actions": 0},
+        }
+    )
     if not hasattr(result, "score"):
         return f"grade() returned {type(result).__name__} (expected GradeResult)"
     if not (0.0 <= result.score <= 1.0):
         return f"score {result.score} out of [0, 1]"
     return True
 
+
 check("graders.grader:grade imports and runs", check_grader_import)
 
 # ── 3. Server app imports ────────────────────────────────────────
 print("\n[3] server.app imports")
+
 
 def check_app_import():
     mod = importlib.import_module("server.app")
@@ -79,13 +124,16 @@ def check_app_import():
         return "server.app has no callable main()"
     return True
 
+
 check("server.app imports OK (app + main)", check_app_import)
 
 # ── 4. Environment class ─────────────────────────────────────────
 print("\n[4] IncidentRCAEnvironment")
 
+
 def check_env_reset():
     from server.incident_rca_env_environment import IncidentRCAEnvironment
+
     env = IncidentRCAEnvironment()
     obs = env.reset()
     if obs is None:
@@ -102,11 +150,14 @@ def check_env_reset():
         return "reset() obs.metadata is None (should be {})"
     return True
 
+
 check("reset() returns valid ObservationModel", check_env_reset)
+
 
 def check_env_health():
     from server.incident_rca_env_environment import IncidentRCAEnvironment
     from openenv.core.env_server.types import EnvironmentMetadata
+
     env = IncidentRCAEnvironment()
     meta = env.get_metadata()
     if not isinstance(meta, EnvironmentMetadata):
@@ -117,11 +168,14 @@ def check_env_health():
         return "metadata.description is empty"
     return True
 
+
 check("get_metadata() returns EnvironmentMetadata", check_env_health)
+
 
 def check_env_state():
     from server.incident_rca_env_environment import IncidentRCAEnvironment
     from openenv.core.env_server.types import State
+
     env = IncidentRCAEnvironment()
     env.reset()
     s = env.state
@@ -129,24 +183,30 @@ def check_env_state():
         return f"state is {type(s).__name__} (expected State)"
     return True
 
+
 check("state property returns State object", check_env_state)
 
 # ── 5. Models inherit from OpenEnv base ─────────────────────────
 print("\n[5] Pydantic model compliance")
 
+
 def check_action_model():
     from models import ActionModel
     from openenv.core.env_server.types import Action
+
     if not issubclass(ActionModel, Action):
         return f"ActionModel does NOT inherit from openenv Action"
     return True
 
+
 def check_obs_model():
     from models import ObservationModel
     from openenv.core.env_server.types import Observation
+
     if not issubclass(ObservationModel, Observation):
         return f"ObservationModel does NOT inherit from openenv Observation"
     return True
+
 
 check("ActionModel inherits from openenv Action", check_action_model)
 check("ObservationModel inherits from openenv Observation", check_obs_model)
@@ -158,6 +218,7 @@ try:
     import tomllib
 except ImportError:
     import tomli as tomllib
+
 
 def check_pyproject():
     data = tomllib.loads((ROOT / "pyproject.toml").read_bytes().decode())
@@ -172,10 +233,12 @@ def check_pyproject():
         return "MISSING openenv/openenv-core in dependencies"
     return True
 
+
 check("pyproject.toml scripts + deps OK", check_pyproject)
 
 # ── 7. Dockerfile ───────────────────────────────────────────────
 print("\n[7] Dockerfile")
+
 
 def check_dockerfile():
     content = (ROOT / "Dockerfile").read_text()
@@ -190,16 +253,30 @@ def check_dockerfile():
         issues.append("PYTHONPATH not set")
     return True if not issues else " | ".join(issues)
 
+
 check("Dockerfile structure OK", check_dockerfile)
 
 # ── 8. Required files ───────────────────────────────────────────
 print("\n[8] Required files")
-for fname in ["openenv.yaml", "Dockerfile", "README.md", "pyproject.toml", "uv.lock",
-              "server/app.py", "graders/grader.py", "models.py", "graders/__init__.py"]:
-    check(f"{fname} exists", lambda f=fname: True if (ROOT / f).exists() else f"MISSING: {f}")
+for fname in [
+    "openenv.yaml",
+    "Dockerfile",
+    "README.md",
+    "pyproject.toml",
+    "uv.lock",
+    "server/app.py",
+    "graders/grader.py",
+    "models.py",
+    "graders/__init__.py",
+]:
+    check(
+        f"{fname} exists",
+        lambda f=fname: True if (ROOT / f).exists() else f"MISSING: {f}",
+    )
 
 # ── 9. README.md app_port ───────────────────────────────────────
 print("\n[9] README.md")
+
 
 def check_readme():
     content = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -210,11 +287,12 @@ def check_readme():
         issues.append("port 7860 not mentioned in README")
     return True if not issues else " | ".join(issues)
 
+
 check("README has HF Space header with port 7860", check_readme)
 
 # ── Summary ─────────────────────────────────────────────────────
 total = len(PASS) + len(FAIL)
-print(f"\n{'='*50}")
+print(f"\n{'=' * 50}")
 print(f"  {len(PASS)}/{total} checks passed")
 if FAIL:
     print(f"\n  FAILURES FOUND ({len(FAIL)}):")

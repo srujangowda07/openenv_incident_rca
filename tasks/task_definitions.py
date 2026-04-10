@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -53,4 +52,3 @@ def list_tasks(difficulty: str | None = None) -> list[dict]:
     if difficulty:
         tasks = [t for t in tasks if t["difficulty"] == difficulty]
     return tasks
-

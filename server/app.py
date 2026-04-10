@@ -7,6 +7,7 @@ Fixes applied:
 3. get_metadata() override returning proper name/description
 4. main() entry point for multi-mode deployment compliance
 """
+
 import yaml
 import uvicorn
 from pathlib import Path
@@ -29,6 +30,7 @@ def _get_metadata(self) -> EnvironmentMetadata:
         author="Srujan Gowda",
     )
 
+
 IncidentRCAEnvironment.get_metadata = _get_metadata  # type: ignore[method-assign]
 
 
@@ -38,15 +40,17 @@ def _load_tasks_from_yaml() -> list:
     cfg = yaml.safe_load((repo_root / "openenv.yaml").read_text(encoding="utf-8"))
     tasks = []
     for t in cfg.get("tasks", []):
-        tasks.append({
-            "id": t["id"],
-            "name": t.get("name", t["id"]),
-            "difficulty": t.get("difficulty", "easy"),
-            "max_steps": t.get("max_steps", 15),
-            "description": t.get("description", ""),
-            "grader": t.get("grader", ""),
-            "has_grader": bool(t.get("grader", "")),
-        })
+        tasks.append(
+            {
+                "id": t["id"],
+                "name": t.get("name", t["id"]),
+                "difficulty": t.get("difficulty", "easy"),
+                "max_steps": t.get("max_steps", 15),
+                "description": t.get("description", ""),
+                "grader": t.get("grader", ""),
+                "has_grader": bool(t.get("grader", "")),
+            }
+        )
     return tasks
 
 
@@ -65,7 +69,12 @@ app = create_app(
 _TASKS = _load_tasks_from_yaml()
 
 
-@app.get("/tasks", tags=["Environment Info"], summary="List all tasks", response_model=TaskResponse)
+@app.get(
+    "/tasks",
+    tags=["Environment Info"],
+    summary="List all tasks",
+    response_model=TaskResponse,
+)
 async def list_tasks():
     """
     Return all tasks defined in this environment.

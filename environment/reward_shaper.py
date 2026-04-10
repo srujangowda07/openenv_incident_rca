@@ -2,19 +2,18 @@ from __future__ import annotations
 from .canonical import normalize_cause_type, normalize_service
 
 
-
 REWARD_TABLE: dict[str, float] = {
-    "submit_diagnosis_perfect":   +0.90,   # exact service + cause match
-    "submit_diagnosis_partial":   +0.50,   # correct service, wrong/unrecognised cause
-    "submit_diagnosis_wrong":     -0.50,   # wrong service
-    "submit_diagnosis_early":     -0.20,   # diagnosis before gathering any evidence
-    "reaching_root":              +0.05,   # first time agent queries the root cause service
-    "correct_dependency_step":    +0.05,   # queried a service in the cascade (not root)
-    "useful_exploration":         +0.05,   # trace implicates root cause but service already seen
-    "wrong_direction":            -0.05,   # queried a service outside the cascade
-    "repeated_action":            -0.10,   # exact same tool call repeated
-    "invalid_action":             -0.10,   # missing required param or unknown service
-    "step_penalty":               -0.01,   # applied every step as efficiency incentive
+    "submit_diagnosis_perfect": +0.90,  # exact service + cause match
+    "submit_diagnosis_partial": +0.50,  # correct service, wrong/unrecognised cause
+    "submit_diagnosis_wrong": -0.50,  # wrong service
+    "submit_diagnosis_early": -0.20,  # diagnosis before gathering any evidence
+    "reaching_root": +0.05,  # first time agent queries the root cause service
+    "correct_dependency_step": +0.05,  # queried a service in the cascade (not root)
+    "useful_exploration": +0.05,  # trace implicates root cause but service already seen
+    "wrong_direction": -0.05,  # queried a service outside the cascade
+    "repeated_action": -0.10,  # exact same tool call repeated
+    "invalid_action": -0.10,  # missing required param or unknown service
+    "step_penalty": -0.01,  # applied every step as efficiency incentive
 }
 
 
@@ -22,7 +21,9 @@ class RewardShaper:
     def __init__(self, scenario: dict):
         self.rca_service = normalize_service(scenario["root_cause"]["service"])
         self.rca_cause = scenario["root_cause"]["cause_type"]
-        self.cascade = [normalize_service(s) for s in scenario["root_cause"].get("cascade", [])]
+        self.cascade = [
+            normalize_service(s) for s in scenario["root_cause"].get("cascade", [])
+        ]
         self.dependency_graph = scenario.get("dependency_graph", {})
 
         self.rewarded_services: set[str] = set()
@@ -58,20 +59,35 @@ class RewardShaper:
     def reward_fetch_traces(
         self, implicates: bool, trace_services: list[str]
     ) -> tuple[float, dict, str]:
-        
+
         if implicates:
             rca_norm = self.rca_service
             for svc in trace_services:
-                if normalize_service(svc) == rca_norm and rca_norm not in self.rewarded_services:
+                if (
+                    normalize_service(svc) == rca_norm
+                    and rca_norm not in self.rewarded_services
+                ):
                     self.rewarded_services.add(rca_norm)
                     v = REWARD_TABLE["reaching_root"]
-                    return v, {"fetch_traces": v}, f"trace reached root cause service: {rca_norm}"
+                    return (
+                        v,
+                        {"fetch_traces": v},
+                        f"trace reached root cause service: {rca_norm}",
+                    )
 
             if self.exploration_rewards_count < 2:
                 self.exploration_rewards_count += 1
                 v = REWARD_TABLE["useful_exploration"]
-                return v, {"fetch_traces": v}, "trace implicates root cause (already visited)"
-            return 0.01, {"fetch_traces": 0.01}, "trace implicates root cause but exploration reward capped"
+                return (
+                    v,
+                    {"fetch_traces": v},
+                    "trace implicates root cause (already visited)",
+                )
+            return (
+                0.01,
+                {"fetch_traces": 0.01},
+                "trace implicates root cause but exploration reward capped",
+            )
 
         v = REWARD_TABLE["wrong_direction"]
         return v, {"fetch_traces": v}, "trace does not implicate root cause"

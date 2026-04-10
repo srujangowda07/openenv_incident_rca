@@ -21,38 +21,50 @@ def check(name: str, fn):
 print("\n=== openenv validate ===\n")
 
 
-check("openenv.yaml exists",   lambda: open("openenv.yaml").close())
-check("Dockerfile exists",     lambda: open("Dockerfile").close())
-check("README.md exists",      lambda: open("README.md").close())
-check("pyproject.toml exists",   lambda: open("pyproject.toml").close())
-check("uv.lock exists",         lambda: open("uv.lock").close())
+check("openenv.yaml exists", lambda: open("openenv.yaml").close())
+check("Dockerfile exists", lambda: open("Dockerfile").close())
+check("README.md exists", lambda: open("README.md").close())
+check("pyproject.toml exists", lambda: open("pyproject.toml").close())
+check("uv.lock exists", lambda: open("uv.lock").close())
 
 
 def check_yaml():
     import yaml
+
     with open("openenv.yaml") as f:
         cfg = yaml.safe_load(f)
-    required_fields = ["name", "version", "tasks", "observation_space",
-                       "action_space", "reward_space", "grader"]
+    required_fields = [
+        "name",
+        "version",
+        "tasks",
+        "observation_space",
+        "action_space",
+        "reward_space",
+        "grader",
+    ]
     for field in required_fields:
         assert field in cfg, f"Missing top-level field: '{field}'"
     assert len(cfg["tasks"]) >= 3, "Need at least 3 tasks"
     # Verify action_space enum contains only the 5 valid actions
     valid_actions = {
-        "grep_logs", "query_metrics", "fetch_traces",
-        "query_dependencies", "submit_diagnosis",
+        "grep_logs",
+        "query_metrics",
+        "fetch_traces",
+        "query_dependencies",
+        "submit_diagnosis",
     }
     declared = set(cfg["action_space"]["fields"]["action_type"]["enum"])
     assert declared == valid_actions, (
         f"action_space mismatch. Got: {declared}, expected: {valid_actions}"
     )
 
-check("openenv.yaml structure", check_yaml)
 
+check("openenv.yaml structure", check_yaml)
 
 
 def check_tasks():
     from tasks.task_definitions import TASKS
+
     assert "easy_001" in TASKS, "easy_001 not in TASKS"
     assert "medium_001" in TASKS, "medium_001 not in TASKS"
     assert "hard_001" in TASKS, "hard_001 not in TASKS"
@@ -61,8 +73,8 @@ def check_tasks():
     assert "medium" in diffs, "No medium tasks"
     assert "hard" in diffs, "No hard tasks"
 
-check("3 difficulty levels", check_tasks)
 
+check("3 difficulty levels", check_tasks)
 
 
 try:
@@ -100,7 +112,10 @@ try:
         env.reset()
         action = ActionModel(
             action_type="query_metrics",
-            parameters={"service": "postgres-primary", "metric_name": "active_connections"},
+            parameters={
+                "service": "postgres-primary",
+                "metric_name": "active_connections",
+            },
         )
         for _ in range(5):
             _, r, done, _ = env.step(action)
@@ -122,6 +137,7 @@ try:
 
     def check_all_tasks():
         from tasks.task_definitions import TASKS
+
         # Test all 17 tasks
         for tid in TASKS.keys():
             env = IncidentRCAEnv(task_id=tid, seed=42)
@@ -148,7 +164,6 @@ except ImportError as e:
     print(f"  {FAIL}  Could not import environment: {e} (run: pip install pydantic)")
 
 
-
 def check_grader_range():
     from environment.scenario_generator import ScenarioGenerator
     from graders.grader import IncidentRCAGrader
@@ -157,23 +172,29 @@ def check_grader_range():
     scenario = gen.generate("easy_001")
     grader = IncidentRCAGrader()
 
-
     root_cause = scenario["root_cause"]
     episode = {
         "task_id": "easy_001",
         "scenario": scenario,
         "actions_taken": [
             (
-                {"action_type": "grep_logs",
-                 "parameters": {"service": root_cause["service"], "keyword": "error"}},
+                {
+                    "action_type": "grep_logs",
+                    "parameters": {
+                        "service": root_cause["service"],
+                        "keyword": "error",
+                    },
+                },
                 {},
             ),
             (
-                {"action_type": "submit_diagnosis",
-                 "parameters": {
-                     "root_cause_service": root_cause["service"],
-                     "cause_type": root_cause["cause_type"],
-                 }},
+                {
+                    "action_type": "submit_diagnosis",
+                    "parameters": {
+                        "root_cause_service": root_cause["service"],
+                        "cause_type": root_cause["cause_type"],
+                    },
+                },
                 {},
             ),
         ],
@@ -185,7 +206,10 @@ def check_grader_range():
             "action_history": [
                 {
                     "action": "grep_logs",
-                    "parameters": {"service": root_cause["service"], "keyword": "error"},
+                    "parameters": {
+                        "service": root_cause["service"],
+                        "keyword": "error",
+                    },
                     "result": {"logs": []},
                     "reward": 0.05,
                 }
@@ -199,19 +223,21 @@ def check_grader_range():
     }
 
     result = grader.grade(episode)
-    assert 0.10 <= result.score <= 0.90, f"Score out of range [0.1, 0.9]: {result.score}"
+    assert 0.10 <= result.score <= 0.90, (
+        f"Score out of range [0.1, 0.9]: {result.score}"
+    )
     assert result.score >= 0.60, (
         f"Perfect episode should pass threshold (0.60). Got: {result.score}"
     )
     assert result.passed, "Perfect episode should be marked as passed"
 
-check("grader score in [0.1, 0.9]", check_grader_range)
 
+check("grader score in [0.1, 0.9]", check_grader_range)
 
 
 passed = sum(results)
 total = len(results)
-print(f"\n{'='*32}")
+print(f"\n{'=' * 32}")
 print(f"  {passed}/{total} checks passed")
 if passed == total:
     print("  Environment is valid. Ready to submit.")

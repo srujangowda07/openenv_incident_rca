@@ -41,12 +41,12 @@ class IncidentRCAEnvironment(Environment):
         try:
             self._env = IncidentRCAEnv(task_id=task_id, seed=seed)
             obs = self._env.reset()
-            
+
             # Ensure compliance with platform schema (must not be null)
             obs.reward = 0.0
             obs.metadata = {}
             obs.done = False  # Reset should always be not done
-            
+
             return obs
 
         except Exception as e:

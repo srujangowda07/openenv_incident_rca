@@ -52,7 +52,9 @@ class StateManager:
 
     def record_tool(self, tool_name: str, params: dict) -> bool:
         self._state.tools_used.append(tool_name)
-        svc = params.get("service", params.get("root_cause_service", params.get("request_id", "")))
+        svc = params.get(
+            "service", params.get("root_cause_service", params.get("request_id", ""))
+        )
         sig = f"{tool_name}:{svc}"
         is_duplicate = sig in self._state.unique_tool_calls
         if not is_duplicate:
@@ -80,7 +82,9 @@ class StateManager:
         self._state.done = done
 
     def should_terminate(self, max_steps: int) -> bool:
-        return self._state.step >= max_steps or self._state.diagnosed_service is not None
+        return (
+            self._state.step >= max_steps or self._state.diagnosed_service is not None
+        )
 
     def snapshot(self) -> dict:
         return self._state.to_dict()

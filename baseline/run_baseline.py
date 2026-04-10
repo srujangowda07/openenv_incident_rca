@@ -5,6 +5,7 @@ import sys
 import time
 from pathlib import Path
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -60,21 +61,21 @@ def build_user_prompt(obs: dict, step: int) -> str:
     for h in obs.get("history", []):
         history_lines += f"\n  Step {h.get('action')}: reward={h.get('reward', 0):+.3f}"
 
-    return f"""STEP {step} of {obs.get('max_steps', 25)} — INCIDENT ENVIRONMENT STATE
+    return f"""STEP {step} of {obs.get("max_steps", 25)} — INCIDENT ENVIRONMENT STATE
 
 === TASK ===
-{obs.get('task_description', '')}
+{obs.get("task_description", "")}
 
 === ACTIVE ALERTS ===
-{json.dumps(obs.get('alerts', []), indent=2)}
+{json.dumps(obs.get("alerts", []), indent=2)}
 
 === LAST TOOL RESULT ===
-{json.dumps(obs.get('tool_result'), indent=2)}
+{json.dumps(obs.get("tool_result"), indent=2)}
 
 === ACTION HISTORY (last 5) ==={history_lines if history_lines else " (none yet)"}
 
 === AVAILABLE ACTIONS ===
-{', '.join(obs.get('available_actions', []))}
+{", ".join(obs.get("available_actions", []))}
 
 What is your next action? Respond with JSON only."""
 
@@ -117,15 +118,16 @@ def parse_action(raw: str) -> ActionModel:
         )
 
 
-def run_episode(task_id: str, model: str = None, seed: int = 42,
-                verbose: bool = True) -> dict:
+def run_episode(
+    task_id: str, model: str = None, seed: int = 42, verbose: bool = True
+) -> dict:
     task = get_task(task_id)
 
     if verbose:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  Task: {task['name']}  ({task_id})")
         print(f"  Model: {model}  |  Seed: {seed}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
     env = IncidentRCAEnv(task_id=task_id, seed=seed)
     obs = env.reset()
@@ -155,8 +157,8 @@ def run_episode(task_id: str, model: str = None, seed: int = 42,
                 action_type="submit_diagnosis",
                 parameters={
                     "root_cause_service": "unknown",
-                    "cause_type": "llm_failure"
-                }
+                    "cause_type": "llm_failure",
+                },
             )
 
             obs, reward, done, info = env.step(action)
@@ -180,10 +182,12 @@ def run_episode(task_id: str, model: str = None, seed: int = 42,
         time.sleep(0.3)
 
     if info is None:
-        _, _, _, info = env.step(ActionModel(
-            action_type="submit_diagnosis",
-            parameters={"root_cause_service": "unknown", "cause_type": "no_steps"},
-        ))
+        _, _, _, info = env.step(
+            ActionModel(
+                action_type="submit_diagnosis",
+                parameters={"root_cause_service": "unknown", "cause_type": "no_steps"},
+            )
+        )
 
     final_state = env.state()
 
@@ -211,7 +215,9 @@ def grade_episode(episode: dict, verbose: bool = True) -> dict:
     result = grader.grade(episode)
 
     if verbose:
-        print(f"\n  GRADE: {result.score:.3f} / 1.000  ({'PASS' if result.passed else 'FAIL'})")
+        print(
+            f"\n  GRADE: {result.score:.3f} / 1.000  ({'PASS' if result.passed else 'FAIL'})"
+        )
         print("  Breakdown:")
         for dim, score in result.breakdown.items():
             if isinstance(score, float) and score != 0.0:
@@ -276,7 +282,10 @@ def _run_dry(task_id: str):
         ),
         ActionModel(
             action_type="query_metrics",
-            parameters={"service": "postgres-primary", "metric_name": "active_connections"},
+            parameters={
+                "service": "postgres-primary",
+                "metric_name": "active_connections",
+            },
         ),
         ActionModel(
             action_type="fetch_traces",
@@ -328,23 +337,31 @@ def main():
         description="Run baseline LLM agent on IncidentRCAEnv"
     )
     parser.add_argument(
-        "--task", type=str, default=None,
+        "--task",
+        type=str,
+        default=None,
         help="Task ID (e.g. easy_001-007, medium_001-005, hard_001-005)",
     )
     parser.add_argument(
-        "--all", action="store_true",
+        "--all",
+        action="store_true",
         help="Run all tasks and produce full baseline report",
     )
     parser.add_argument(
-        "--model", type=str, default=os.environ.get("MODEL_NAME", "meta/llama-3.3-70b-instruct"),
+        "--model",
+        type=str,
+        default=os.environ.get("MODEL_NAME", "meta/llama-3.3-70b-instruct"),
         help="OpenAI model to use",
     )
     parser.add_argument(
-        "--seed", type=int, default=42,
+        "--seed",
+        type=int,
+        default=42,
         help="Random seed for reproducibility (default: 42)",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="Run without calling LLM — uses scripted valid actions for smoke testing",
     )
 

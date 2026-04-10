@@ -22,8 +22,6 @@ AVAILABLE_ACTIONS = [
 ]
 
 
-
-
 class IncidentRCAEnv:
     def __init__(self, task_id: str = "easy_001", seed: int | None = None):
         self.task_id = task_id
@@ -52,7 +50,9 @@ class IncidentRCAEnv:
             print(f"[ENV RESET ERROR] {e}")
             raise RuntimeError(f"Env reset failed: {e}")
 
-    def step(self, action: ActionModel) -> tuple[ObservationModel, RewardModel, bool, InfoModel]:
+    def step(
+        self, action: ActionModel
+    ) -> tuple[ObservationModel, RewardModel, bool, InfoModel]:
         assert self._ready, "Call reset() before step()"
         assert not self._sm.state.done, "Episode done — call reset()"
 
@@ -64,12 +64,14 @@ class IncidentRCAEnv:
         total, breakdown = self._reward_shaper.applying_step_penalty(total, breakdown)
         self._sm.add_reward(total)
 
-        self._sm.record_action({
-            "action": action.action_type,
-            "parameters": action.parameters,
-            "result": self._sm.state.tool_result,
-            "reward": round(total, 4),
-        })
+        self._sm.record_action(
+            {
+                "action": action.action_type,
+                "parameters": action.parameters,
+                "result": self._sm.state.tool_result,
+                "reward": round(total, 4),
+            }
+        )
 
         done = self._sm.should_terminate(self.max_steps)
         self._sm.set_done(done)
@@ -84,7 +86,9 @@ class IncidentRCAEnv:
     def state(self) -> dict:
         return self._sm.snapshot()
 
-    def _dispatch(self, action: ActionModel, is_duplicate: bool) -> tuple[float, dict, str]:
+    def _dispatch(
+        self, action: ActionModel, is_duplicate: bool
+    ) -> tuple[float, dict, str]:
         at, p, rs = action.action_type, action.parameters, self._reward_shaper
 
         if is_duplicate and at != "submit_diagnosis":
@@ -101,7 +105,8 @@ class IncidentRCAEnv:
                 self._sm.set_tool_result({"error": f"service '{svc}' not found"})
                 return rs.reward_invalid_action(at, "service not found")
             logs = [
-                l for l in self._scenario.get("logs", [])
+                l
+                for l in self._scenario.get("logs", [])
                 if kw.lower() in l["message"].lower()
                 and svc.lower() in l.get("service", "").lower()
             ]
@@ -114,13 +119,16 @@ class IncidentRCAEnv:
             metric = p.get("metric_name", "")
             if not svc or not metric:
                 self._sm.record_invalid_action()
-                return rs.reward_invalid_action(at, "missing 'service' or 'metric_name'")
+                return rs.reward_invalid_action(
+                    at, "missing 'service' or 'metric_name'"
+                )
             if not any(s["name"] == svc for s in self._scenario.get("services", [])):
                 self._sm.record_invalid_action()
                 self._sm.set_tool_result({"error": f"service '{svc}' not found"})
                 return rs.reward_invalid_action(at, "service not found")
             metrics = [
-                m for m in self._scenario.get("metrics", [])
+                m
+                for m in self._scenario.get("metrics", [])
                 if svc.lower() in m["service"].lower()
                 and metric.lower() in m["metric"].lower()
             ]
@@ -141,7 +149,11 @@ class IncidentRCAEnv:
             self._sm.set_tool_result({"trace": trace})
             rca_svc = self._scenario["root_cause"]["service"].lower()
             trace_services = [span.get("service", "") for span in trace]
-            implicates = any(rca_svc in span.get("service", "").lower() or rca_svc in span.get("error", "").lower() for span in trace)
+            implicates = any(
+                rca_svc in span.get("service", "").lower()
+                or rca_svc in span.get("error", "").lower()
+                for span in trace
+            )
             for ts in trace_services:
                 self._sm.state.visited_services.add(ts)
             return rs.reward_fetch_traces(implicates, trace_services)
@@ -158,7 +170,9 @@ class IncidentRCAEnv:
                 self._sm.record_invalid_action()
                 self._sm.set_tool_result({"error": f"service '{svc}' not in graph"})
                 return rs.reward_invalid_action(at, "service not found in graph")
-            self._sm.set_tool_result({"service": svc, "upstream": upstream, "downstream": downstream})
+            self._sm.set_tool_result(
+                {"service": svc, "upstream": upstream, "downstream": downstream}
+            )
             self._sm.state.visited_services.add(svc)
             if svc not in self._sm.state.dependency_path:
                 self._sm.state.dependency_path.append(svc)
@@ -169,7 +183,9 @@ class IncidentRCAEnv:
             cause = p.get("cause_type", "")
             if not svc or not cause:
                 self._sm.record_invalid_action()
-                return rs.reward_invalid_action(at, "missing 'root_cause_service' or 'cause_type'")
+                return rs.reward_invalid_action(
+                    at, "missing 'root_cause_service' or 'cause_type'"
+                )
             self._sm.record_diagnosis(svc, cause)
             self._sm.set_tool_result({"diagnosis_submitted": True})
             return rs.reward_diagnosis(svc, cause, self._sm.state.step)
