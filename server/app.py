@@ -24,5 +24,4 @@ def health():
 def root():
     return {"status": "running"}
 
-# Mount OpenEnv under /env (IMPORTANT)
-app.mount("/env", env_app)
+app.mount("/", env_app)
