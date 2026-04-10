@@ -164,7 +164,7 @@ tasks:
     description: "payment-service pods crashing due to memory leak in unbounded cache"
 
   - id: easy_003
-    grader: "grader:grade"
+    grader: "grader:THIS_FUNCTION_DOES_NOT_EXIST"
     name: "Disk Full — Logging Service"
     difficulty: easy
     max_steps: 15
