@@ -4,7 +4,6 @@ from environment.canonical import normalize_cause_type, normalize_service
 
 import sys
 import os
-print("🔥 GRADER FILE EXECUTED")
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -173,7 +172,7 @@ class IncidentRCAGrader:
         return " | ".join(lines) if lines else "correct"
 
 
-def grade(payload: dict) -> GradeResult:
+def grade(payload: dict) -> float:
     """
     OpenEnv entry point for grading.
     Attempts to use IncidentRCAGrader for a full evaluation.
@@ -181,12 +180,11 @@ def grade(payload: dict) -> GradeResult:
     try:
         # Standard OpenEnv passes the episode data as the payload.
         # We delegate to the more sophisticated IncidentRCAGrader.
-        return IncidentRCAGrader().grade(payload)
+        result = IncidentRCAGrader().grade(payload)
+        score = float(result.score)
     except Exception as e:
         # Fallback in case of catastrophic failure
-        return GradeResult(
-            score=0.10,
-            breakdown={"error": 1.0},
-            passed=False,
-            feedback=f"Critical grader failure: {e}",
-        )
+        score = 0.10
+        
+    score = max(0.05, min(0.95, float(score)))
+    return score
