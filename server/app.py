@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from openenv.core.env_server.http_server import create_app
 from openenv.core.env_server.types import EnvironmentMetadata
-from models import ActionModel, ObservationModel
+from models import ActionModel, ObservationModel, TaskResponse
 from server.incident_rca_env_environment import IncidentRCAEnvironment
 
 
@@ -65,7 +65,7 @@ app = create_app(
 _TASKS = _load_tasks_from_yaml()
 
 
-@app.get("/tasks", tags=["Environment Info"], summary="List all tasks")
+@app.get("/tasks", tags=["Environment Info"], summary="List all tasks", response_model=TaskResponse)
 async def list_tasks():
     """
     Return all tasks defined in this environment.
@@ -73,11 +73,11 @@ async def list_tasks():
     Each task includes its grader entrypoint, required for hackathon
     Phase 2 validation ('Not enough tasks with graders' check).
     """
-    return JSONResponse(content={
+    return {
         "tasks": _TASKS,
         "total": len(_TASKS),
         "tasks_with_graders": sum(1 for t in _TASKS if t["has_grader"]),
-    })
+    }
 
 
 def main():

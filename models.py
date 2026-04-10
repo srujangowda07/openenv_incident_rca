@@ -38,3 +38,19 @@ class InfoModel(BaseModel):
     tools_used: List[str] = Field(default_factory=list)
     invalid_actions: int = Field(default=0)
     cumulative_reward: float = Field(default=0.0)
+
+
+class TaskDetail(BaseModel):
+    id: str
+    name: str
+    difficulty: str
+    max_steps: int
+    description: str
+    grader: str
+    has_grader: bool
+
+
+class TaskResponse(BaseModel):
+    tasks: List[TaskDetail]
+    total: int
+    tasks_with_graders: int
