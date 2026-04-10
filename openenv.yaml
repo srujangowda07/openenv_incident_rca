@@ -58,6 +58,12 @@ observation_space:
     done:
       type: bool
       description: "Whether the episode has ended"
+    reward:
+      type: float
+      description: "The reward received at the current step"
+    metadata:
+      type: dict
+      description: "Additional debugging or tracking information"
 
 # Action Space
 action_space:
