@@ -1,18 +1,21 @@
 """
 OpenEnv server entry point.
 
-Key fixes applied:
-1. Removed conflicting /health and / routes (OpenEnv framework already provides /health returning {"status": "healthy"})
-2. The framework's env_app is mounted correctly as the primary app
-3. Overrides get_metadata() on the Environment to expose tasks with graders
-4. Adds a proper main() for multi-mode deployment compliance
+Fixes applied:
+1. Removed conflicting /health and / routes
+2. Adds /tasks endpoint — required for Phase 2 hackathon validation
+3. get_metadata() override returning proper name/description
+4. main() entry point for multi-mode deployment compliance
 """
+import yaml
 import uvicorn
+from pathlib import Path
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from openenv.core.env_server.http_server import create_app
 from openenv.core.env_server.types import EnvironmentMetadata
 from models import ActionModel, ObservationModel
 from server.incident_rca_env_environment import IncidentRCAEnvironment
-
 
 
 def _get_metadata(self) -> EnvironmentMetadata:
@@ -26,18 +29,28 @@ def _get_metadata(self) -> EnvironmentMetadata:
         author="Srujan Gowda",
     )
 
-IncidentRCAEnvironment.get_metadata = _get_metadata  
+IncidentRCAEnvironment.get_metadata = _get_metadata  # type: ignore[method-assign]
 
 
-# Create the OpenEnv FastAPI app — this already provides:
-#   GET  /health        -> {"status": "healthy"}
-#   GET  /metadata      -> EnvironmentMetadata
-#   GET  /schema        -> action/observation/state schemas
-#   POST /reset         -> initial observation
-#   POST /step          -> step result
-#   GET  /state         -> current state
-#   POST /mcp           -> JSON-RPC MCP endpoint
-#   WS   /ws            -> WebSocket endpoint
+def _load_tasks_from_yaml() -> list:
+    """Load tasks from openenv.yaml for the /tasks endpoint."""
+    repo_root = Path(__file__).resolve().parent.parent
+    cfg = yaml.safe_load((repo_root / "openenv.yaml").read_text(encoding="utf-8"))
+    tasks = []
+    for t in cfg.get("tasks", []):
+        tasks.append({
+            "id": t["id"],
+            "name": t.get("name", t["id"]),
+            "difficulty": t.get("difficulty", "easy"),
+            "max_steps": t.get("max_steps", 15),
+            "description": t.get("description", ""),
+            "grader": t.get("grader", ""),
+            "has_grader": bool(t.get("grader", "")),
+        })
+    return tasks
+
+
+# Create the base OpenEnv FastAPI app
 app = create_app(
     IncidentRCAEnvironment,
     ActionModel,
@@ -45,6 +58,26 @@ app = create_app(
     env_name="incident_rca_env",
     max_concurrent_envs=1,
 )
+
+
+# --- Add /tasks endpoint ---
+# The hackathon Phase 2 validator calls GET /tasks to verify tasks with graders.
+_TASKS = _load_tasks_from_yaml()
+
+
+@app.get("/tasks", tags=["Environment Info"], summary="List all tasks")
+async def list_tasks():
+    """
+    Return all tasks defined in this environment.
+
+    Each task includes its grader entrypoint, required for hackathon
+    Phase 2 validation ('Not enough tasks with graders' check).
+    """
+    return JSONResponse(content={
+        "tasks": _TASKS,
+        "total": len(_TASKS),
+        "tasks_with_graders": sum(1 for t in _TASKS if t["has_grader"]),
+    })
 
 
 def main():
