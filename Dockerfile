@@ -34,6 +34,10 @@ WORKDIR /app
 COPY --from=builder /app/env/.venv /app/.venv
 COPY --from=builder /app/env /app/env
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
