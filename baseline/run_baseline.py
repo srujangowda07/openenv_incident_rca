@@ -11,9 +11,9 @@ load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from environment.env import IncidentRCAEnv, ActionModel
-from graders.grader import IncidentRCAGrader
-from tasks.task_definitions import TASKS, get_task
+from environment.env import IncidentRCAEnv, ActionModel  # noqa: E402
+from graders.grader import IncidentRCAGrader  # noqa: E402
+from tasks.task_definitions import TASKS, get_task  # noqa: E402
 
 
 SYSTEM_PROMPT = """You are an expert Site Reliability Engineer performing incident response.
@@ -111,7 +111,7 @@ def parse_action(raw: str) -> ActionModel:
             action_type=data.get("action_type", "submit_diagnosis"),
             parameters=data.get("parameters", {}),
         )
-    except (json.JSONDecodeError, KeyError, TypeError) as e:
+    except (json.JSONDecodeError, KeyError, TypeError):
         return ActionModel(
             action_type="submit_diagnosis",
             parameters={"root_cause_service": "unknown", "cause_type": "parse_error"},

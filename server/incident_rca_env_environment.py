@@ -5,10 +5,10 @@ from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
 try:
-    from ..models import ActionModel, ObservationModel, RewardModel, InfoModel
+    from ..models import ActionModel, ObservationModel
     from ..environment.env import IncidentRCAEnv
 except ImportError:
-    from models import ActionModel, ObservationModel, RewardModel, InfoModel
+    from models import ActionModel, ObservationModel
     from environment.env import IncidentRCAEnv
 
 

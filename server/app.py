@@ -11,8 +11,6 @@ Fixes applied:
 import yaml
 import uvicorn
 from pathlib import Path
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 from openenv.core.env_server.http_server import create_app
 from openenv.core.env_server.types import EnvironmentMetadata
 from models import ActionModel, ObservationModel, TaskResponse

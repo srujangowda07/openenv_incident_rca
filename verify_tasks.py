@@ -15,7 +15,7 @@ print(f"app:     {cfg.get('app')}")
 print(f"port:    {cfg.get('port')}")
 print()
 
-from server.app import _TASKS
+from server.app import _TASKS  # noqa: E402
 
 print(f"/tasks endpoint returns: {len(_TASKS)} tasks")
 print(f"tasks_with_graders: {sum(1 for t in _TASKS if t['has_grader'])}")

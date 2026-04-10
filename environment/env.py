@@ -105,10 +105,10 @@ class IncidentRCAEnv:
                 self._sm.set_tool_result({"error": f"service '{svc}' not found"})
                 return rs.reward_invalid_action(at, "service not found")
             logs = [
-                l
-                for l in self._scenario.get("logs", [])
-                if kw.lower() in l["message"].lower()
-                and svc.lower() in l.get("service", "").lower()
+                entry
+                for entry in self._scenario.get("logs", [])
+                if kw.lower() in entry["message"].lower()
+                and svc.lower() in entry.get("service", "").lower()
             ]
             self._sm.set_tool_result({"logs": logs[:20]})
             self._sm.state.visited_services.add(svc)

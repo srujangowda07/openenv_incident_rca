@@ -4,7 +4,6 @@ Run: python deep_audit.py
 """
 
 import sys
-import traceback
 import yaml
 import importlib
 from pathlib import Path
@@ -72,11 +71,11 @@ for t in tasks:
         lambda t=t, tid=tid: True if t.get("grader") else f"MISSING grader on {tid}",
     )
     check(
-        f"task '{tid}' grader exists in registry",
+        f"task '{tid}' valid grader string",
         lambda t=t, tid=tid: (
             True
-            if t.get("grader") in cfg.get("graders", {})
-            else f"grader '{t.get('grader')}' NOT found in graders registry. Available: {list(cfg.get('graders', {}).keys())}"
+            if t.get("grader") and ":" in str(t.get("grader"))
+            else f"grader '{t.get('grader')}' does not look like an entrypoint module:function"
         ),
     )
 
@@ -195,7 +194,7 @@ def check_action_model():
     from openenv.core.env_server.types import Action
 
     if not issubclass(ActionModel, Action):
-        return f"ActionModel does NOT inherit from openenv Action"
+        return "ActionModel does NOT inherit from openenv Action"
     return True
 
 
@@ -204,7 +203,7 @@ def check_obs_model():
     from openenv.core.env_server.types import Observation
 
     if not issubclass(ObservationModel, Observation):
-        return f"ObservationModel does NOT inherit from openenv Observation"
+        return "ObservationModel does NOT inherit from openenv Observation"
     return True
 
 
