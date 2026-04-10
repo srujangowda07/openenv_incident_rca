@@ -72,11 +72,11 @@ for t in tasks:
         lambda t=t, tid=tid: True if t.get("grader") else f"MISSING grader on {tid}",
     )
     check(
-        f"task '{tid}' grader is entrypoint",
+        f"task '{tid}' grader exists in registry",
         lambda t=t, tid=tid: (
             True
-            if ":" in str(t.get("grader", ""))
-            else f"grader is NOT a python entrypoint: '{t.get('grader')}'"
+            if t.get("grader") in cfg.get("graders", {})
+            else f"grader '{t.get('grader')}' NOT found in graders registry. Available: {list(cfg.get('graders', {}).keys())}"
         ),
     )
 
