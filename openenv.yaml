@@ -1,5 +1,5 @@
 spec_version: 1
-name: incident-rca-env
+name: incident_rca_env
 type: space
 runtime: fastapi
 app: incident_rca_env.server.app:app
