@@ -28,6 +28,8 @@ WORKDIR /app
 
 COPY --from=builder /app/env/.venv /app/.venv
 COPY --from=builder /app/env /app/env
+COPY --from=builder /app/env/openenv.yaml /app/openenv.yaml
+
 
 ENV PATH="/app/.venv/bin:$PATH"
 
