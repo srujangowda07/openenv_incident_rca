@@ -150,7 +150,7 @@ reward_space:
 # Tasks 
 tasks:
   - id: easy_001
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "DB Connection Pool Exhaustion"
@@ -159,7 +159,7 @@ tasks:
     description: "api-gateway 502 errors caused by postgres connection pool exhaustion"
 
   - id: easy_002
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Payment Service OOMKilled"
@@ -168,7 +168,7 @@ tasks:
     description: "payment-service pods crashing due to memory leak in unbounded cache"
 
   - id: easy_003
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Disk Full — Logging Service"
@@ -177,7 +177,7 @@ tasks:
     description: "logging-service down because disk full and log rotation disabled"
 
   - id: easy_004
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Redis Crash Loop"
@@ -186,7 +186,7 @@ tasks:
     description: "Redis container crash loop causing cache failures"
 
   - id: easy_005
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Storage Node Disk Full"
@@ -195,7 +195,7 @@ tasks:
     description: "storage-node-3 disk capacity 100% due to cleanup job failure"
 
   - id: easy_006
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Port Misconfiguration"
@@ -204,7 +204,7 @@ tasks:
     description: "auth-service unreachable due to targetPort mismatch in k8s service"
 
   - id: easy_007
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "DB Credentials failure"
@@ -213,7 +213,7 @@ tasks:
     description: "billing-service DB authentication failure due to rotated password"
 
   - id: medium_001
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Slow Query Cascade — Missing Index"
@@ -222,7 +222,7 @@ tasks:
     description: "Schema migration dropped DB index causing 2-service cascade"
 
   - id: medium_002
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Connection Pool Exhaustion"
@@ -231,7 +231,7 @@ tasks:
     description: "Database connection pool exhaustion under heavy load"
 
   - id: medium_003
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Memory Leak"
@@ -240,7 +240,7 @@ tasks:
     description: "Steady heap growth in recommendation-engine leading to degradation"
 
   - id: medium_004
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "TLS Certificate Expiry"
@@ -249,7 +249,7 @@ tasks:
     description: "api-gateway TLS certificate expired causing handshake failures"
 
   - id: medium_005
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "DNS Misconfiguration"
@@ -258,7 +258,7 @@ tasks:
     description: "internal-proxy DNS resolution failure due to CoreDNS corruption"
 
   - id: hard_001
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Redis Cluster Split-Brain"
@@ -267,7 +267,7 @@ tasks:
     description: "Network partition caused Redis split-brain affecting 6 dependent services"
 
   - id: hard_002
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Index Corruption"
@@ -276,7 +276,7 @@ tasks:
     description: "Innodb index corruption causing data parity failure in report-svc"
 
   - id: hard_003
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Distributed Split-Brain"
@@ -285,7 +285,7 @@ tasks:
     description: "Network partition causes split-brain in distributed Etcd cluster"
 
   - id: hard_004
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Config Drift"
@@ -294,7 +294,7 @@ tasks:
     description: "Inconsistent mesh routing due to Istio configuration drift"
 
   - id: hard_005
-    grader: incident_rca_env.grader:IncidentRCAGrader
+    grader: grader:IncidentRCAGrader
     actions: []
     max_reward: 1.0
     name: "Rate Limiter Failure"
