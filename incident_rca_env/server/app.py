@@ -32,27 +32,19 @@ def health():
 def get_tasks():
     """Return all tasks with graders — required by hackathon validator."""
     tasks = list_tasks()
-    # Ensure grader field is always a proper dict, never empty
     result = []
     for t in tasks:
-        grader = t.get("grader") or {}
-        if not grader.get("type"):
-            grader = {
-                "type": "llm",
-                "prompt_template": (
-                    "If the answer is fully correct return 0.9.\n"
-                    "If partially correct return 0.5.\n"
-                    "Otherwise return 0.1.\n\n"
-                    "Output only a number."
-                ),
-            }
+        # Use the task record from task_definitions.py which now includes 
+        # class-based graders and all required fields.
         result.append({
             "id": t["id"],
             "difficulty": t["difficulty"],
-            "grader": grader,
+            "grader": t["grader"],
             "name": t.get("name", t["id"]),
             "max_steps": t.get("max_steps", 25),
             "description": t.get("description", ""),
+            "actions": t.get("actions", []),
+            "max_reward": t.get("max_reward", 1.0),
         })
     return result
 

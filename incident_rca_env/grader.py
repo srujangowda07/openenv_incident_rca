@@ -13,7 +13,7 @@ class GradeResult:
 
 class IncidentRCAGrader:
     """
-    Deterministic grader.  Score range: 0.10 – 0.90.
+    Deterministic grader. Score range: 0.10 – 0.90.
     Dimensions and weights match openenv.yaml exactly:
 
         root_cause_service  0.50
@@ -34,7 +34,41 @@ class IncidentRCAGrader:
     MIN_SCORE_STRICT = 0.10
     MAX_SCORE_STRICT = 0.90
 
-    def grade(self, episode: dict) -> GradeResult:
+    def grade(self, env, *args, **kwargs) -> float:
+        """
+        CLASS-BASED GRADER COMPATIBLE WITH VALIDATOR.
+        Extracts episode data from environment and calculates final score.
+        """
+        # Handle cases where env might be the episode dict itself
+        if isinstance(env, dict):
+            episode = env
+        else:
+            # Assume env is an IncidentRCAEnvironment or IncidentRCAEnv instance
+            try:
+                # Try to get data from IncidentRCAEnvironment wrapper
+                if hasattr(env, "_env") and env._env is not None:
+                    inner_env = env._env
+                    episode = {
+                        "scenario": getattr(inner_env, "_scenario", {}),
+                        "final_state": inner_env.state(),
+                        "info": inner_env._build_info(done=True).model_dump()
+                        if hasattr(inner_env, "_build_info")
+                        else {},
+                    }
+                elif hasattr(env, "state"):
+                    # Might be the inner IncidentRCAEnv directly
+                    episode = {
+                        "scenario": getattr(env, "_scenario", {}),
+                        "final_state": env.state(),
+                        "info": env._build_info(done=True).model_dump()
+                        if hasattr(env, "_build_info")
+                        else {},
+                    }
+                else:
+                    episode = {}
+            except Exception:
+                episode = {}
+
         breakdown: dict[str, float] = {}
         breakdown["root_cause_service"] = self._score_service(episode)
         breakdown["cause_type"] = self._score_cause_type(episode)
@@ -42,14 +76,9 @@ class IncidentRCAGrader:
         breakdown["penalties"] = self._score_penalties(episode)
 
         raw_total = sum(breakdown.values())
-        total = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
+        score = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
 
-        return GradeResult(
-            score=total,
-            breakdown=breakdown,
-            passed=total >= self.PASS_THRESHOLD,
-            feedback=self._generate_feedback(breakdown, episode),
-        )
+        return float(score)
 
     def _score_service(self, episode: dict) -> float:
         scenario = episode.get("scenario", {}) or {}
@@ -152,17 +181,3 @@ class IncidentRCAGrader:
             lines.append(f"{invalid} invalid action(s) (-{invalid * 0.10:.2f})")
 
         return " | ".join(lines) if lines else "correct"
-
-
-def grade(payload: dict) -> float:
-    """
-    OpenEnv entry point for grading.
-    Attempts to use IncidentRCAGrader for a full evaluation.
-    """
-    # Standard OpenEnv passes the episode data as the payload.
-    # We delegate to the more sophisticated IncidentRCAGrader.
-    result = IncidentRCAGrader().grade(payload)
-    score = float(result.score)
-        
-    score = max(0.05, min(0.95, float(score)))
-    return score

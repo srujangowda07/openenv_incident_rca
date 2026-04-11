@@ -20,13 +20,18 @@ def _build_task_record(task: dict) -> dict:
     task_id = task["id"]
     difficulty = _difficulty_from_task_id(task_id)
     max_steps = task.get("max_steps") or MAX_STEPS_BY_DIFFICULTY.get(difficulty, 25)
-    raw_grader = task.get("grader") or {}
-    grader = {
-        "type": raw_grader.get("type") or "llm",
-        "prompt_template": raw_grader.get("prompt_template") or (
-            "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
-        ),
-    }
+    
+    raw_grader = task.get("grader")
+    if isinstance(raw_grader, str):
+        grader = raw_grader
+    else:
+        raw_grader = raw_grader or {}
+        grader = {
+            "type": raw_grader.get("type") or "llm",
+            "prompt_template": raw_grader.get("prompt_template") or (
+                "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
+            ),
+        }
 
     return {
         "id": task_id,
@@ -36,6 +41,8 @@ def _build_task_record(task: dict) -> dict:
         "difficulty": difficulty,
         "max_steps": max_steps,
         "description": task.get("description", ""),
+        "actions": task.get("actions", []),
+        "max_reward": task.get("max_reward", 1.0),
     }
 
 
