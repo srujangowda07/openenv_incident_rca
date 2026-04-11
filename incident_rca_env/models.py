@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 
 
-from typing import Union
+from typing import Union, Any
 
 class ActionModel(Action):
     action_type: str = Field(
@@ -48,7 +48,7 @@ class TaskDetail(BaseModel):
     difficulty: str
     max_steps: int
     description: str
-    grader: str
+    grader: Union[str, Dict[str, Any]]
     has_grader: bool
 
 

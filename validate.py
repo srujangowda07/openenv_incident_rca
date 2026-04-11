@@ -31,7 +31,7 @@ check("uv.lock exists", lambda: open("uv.lock").close())
 def check_yaml():
     import yaml
 
-    with open("openenv.yaml") as f:
+    with open("openenv.yaml", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     required_fields = [
         "name",
@@ -56,6 +56,14 @@ def check_yaml():
     assert declared == valid_actions, (
         f"action_space mismatch. Got: {declared}, expected: {valid_actions}"
     )
+    
+    # Hackathon Phase 2 Grader Validations
+    for t in cfg["tasks"]:
+        grader = t.get("grader")
+        assert isinstance(grader, dict), f"Task {t['id']} grader must be a dict format, got {type(grader)}"
+        assert grader.get("type") == "llm", f"Task {t['id']} grader type must be 'llm'"
+        assert "prompt_template" in grader, f"Task {t['id']} missing prompt_template"
+        assert isinstance(grader["prompt_template"], str), f"Task {t['id']} prompt_template must be a string"
 
 
 check("openenv.yaml structure", check_yaml)

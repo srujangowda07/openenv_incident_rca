@@ -24,6 +24,8 @@ class EnvState:
             "done": self.done,
             "diagnosed_service": self.diagnosed_service,
             "diagnosed_cause": self.diagnosed_cause,
+            "root_cause_service": self.diagnosed_service,
+            "cause_type": self.diagnosed_cause,
             "tools_used": list(set(self.tools_used)),
             "invalid_actions": self.invalid_actions,
             "cumulative_reward": round(self.cumulative_reward, 4),

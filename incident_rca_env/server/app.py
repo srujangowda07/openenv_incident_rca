@@ -4,15 +4,10 @@ FastAPI application for Incident RCA OpenEnv environment.
 
 from openenv.core.env_server.http_server import create_app
 
-try:
-    from incident_rca_env.models import ActionModel, ObservationModel
-    from incident_rca_env.server.incident_rca_env_environment import (
-        IncidentRCAEnvironment,
-    )
-except ImportError:
-    # Fallback for local execution
-    from models import ActionModel, ObservationModel
-    from server.incident_rca_env_environment import IncidentRCAEnvironment
+from incident_rca_env.models import ActionModel, ObservationModel
+from incident_rca_env.server.incident_rca_env_environment import (
+    IncidentRCAEnvironment,
+)
 
 
 # Optional: attach metadata (safe)

@@ -1,24 +1,3 @@
-"""
-inference.py — OpenEnv Submission Script for IncidentRCAEnv
-============================================================
-Stdout format (MANDATORY — do NOT change field names or order):
-
-    [START] task=<task_id> env=<env_name> model=<model_name>
-    [STEP]  step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
-    [END]   success=<true|false> steps=<n> score=<0.00> rewards=<r1,r2,...>
-
-Rules:
-  - One [START] at episode begin.
-  - One [STEP] per step, immediately after env.step() returns.
-  - One [END] after episode ends, always emitted (even on exception).
-  - reward and rewards are formatted to 2 decimal places.
-  - done and success are lowercase: true or false.
-  - error is the raw error string, or null if none.
-  - score is the final graded score, formatted to 2 decimal places.
-  - All fields on a single line, no newlines within a line.
-  - flush=True on every print so the evaluator reads output in real-time.
-"""
-
 from __future__ import annotations
 
 import json

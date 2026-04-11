@@ -22,7 +22,7 @@ def _build_task_record(task: dict) -> dict:
     max_steps = task.get("max_steps") or MAX_STEPS_BY_DIFFICULTY.get(difficulty, 25)
     return {
         "id": task_id,
-        "grader": task.get("grader", ""),
+        "grader": task.get("grader", {}),
         "has_grader": bool(task.get("grader", "")),
         "name": task.get("name", task_id.replace("_", " ").title()),
         "difficulty": difficulty,

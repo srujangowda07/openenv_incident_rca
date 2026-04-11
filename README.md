@@ -149,27 +149,33 @@ This design ensures:
 
 ## Grader
 
-Evaluation is fully deterministic and reproducible. Ground truth is embedded in the scenario at generation time — no LLM grading.
+This project natively utilizes a dual-grading system to optimize reliability and API costs:
 
-| Dimension | Weight | Criteria |
+**1. Production Grader (Hackathon Validator)**
+The official Phase 2 OpenEnv platform evaluates trajectories directly via its internal LLM, reading `openenv.yaml`. It analyzes the agent's interaction logic, tool usage, investigation quality, and diagnostic correctness to yield a strict dynamically-ranged score between 0.1 and 0.9.
+
+**2. Local Testing Grader (`grader.py`)**
+For high-speed baseline testing, evaluation runs securely via a hardcoded deterministic Python system without pinging LLMs. It compares structural diagnosis against the exact scenario ground truth.
+
+| Dimension | Weight | Local Criteria |
 |---|---|---|
 | Root cause service | 0.50 | Exact match on service name |
 | Cause type | 0.30 | Exact match (only awarded if service is also correct) |
 | Tool evidence | 0.20 | Agent queried root cause service before diagnosing |
-| Penalties | variable | `-0.10` per invalid action · `-0.20` for wrong diagnosis |
+| Penalties | var. | `-0.10` per invalid action · `-0.20` for wrong diagnosis |
 
-The grader evaluates both correctness and reasoning evidence — agents cannot achieve high scores through guessing.
-
-**Pass threshold: 0.60 / 1.00**
+**Pass threshold: 0.60 / 0.90**
 
 ## Score Distribution
 
+To abide by platform rules against purely discrete perfect/failure matrices, we restrict scores strictly within [0.1, 0.9]:
+
 | Agent Quality | Score Range |
 |---|---|
-| Bad agent (random / guessing) | 0.0 – 0.2 |
-| Average agent (finds service, wrong cause) | 0.4 – 0.6 |
-| Good agent (correct + evidence) | 0.7 – 0.9 |
-| Perfect agent (correct + cause + efficient) | 0.95 – 1.0 |
+| Incorrect (random/guessing) | 0.10 – 0.40 |
+| Partial (finds service, wrong cause) | 0.45 – 0.60 |
+| Correct but Inefficient (poor tools) | 0.65 – 0.80 |
+| Excellent (correct + cause + efficient) | 0.85 – 0.90 |
 
 ## Design Principles
 
@@ -366,7 +372,8 @@ Using a reasoning-driven LLM agent:
     │   └── state_manager.py
     ├── server/                 # FastAPI / OpenEnv interface
     │   ├── __init__.py
-    │   └── app.py              # Main API entrypoint
+    │   ├── app.py              # Main API entrypoint
+    │   └── incident_rca_env_environment.py # Environment platform wrapper
     └── tasks/                  # Task definitions
         ├── __init__.py
         └── task_definitions.py
