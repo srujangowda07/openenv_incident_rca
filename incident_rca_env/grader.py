@@ -13,7 +13,7 @@ class GradeResult:
 
 class IncidentRCAGrader:
     """
-    Deterministic grader. Score range: 0.10 – 0.90.
+    Deterministic grader. Score range: 0.0 – 1.0.
     Dimensions and weights match openenv.yaml exactly:
 
         root_cause_service  0.50
@@ -31,8 +31,8 @@ class IncidentRCAGrader:
     W_EVIDENCE = 0.20
     W_PENALTY_PER_INVALID = 0.10
     W_PENALTY_WRONG_SERVICE = 0.20
-    MIN_SCORE_STRICT = 0.10
-    MAX_SCORE_STRICT = 0.90
+    MIN_SCORE_STRICT = 0.0
+    MAX_SCORE_STRICT = 1.0
 
     def grade(self, env, *args, **kwargs) -> float:
         """
@@ -76,7 +76,7 @@ class IncidentRCAGrader:
         breakdown["penalties"] = self._score_penalties(episode)
 
         raw_total = sum(breakdown.values())
-        score = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
+        score = max(0.0, min(1.0, raw_total))
 
         return float(score)
 
