@@ -152,12 +152,7 @@ tasks:
   - id: easy_001
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "DB Connection Pool Exhaustion"
     difficulty: easy
     max_steps: 15
@@ -166,12 +161,7 @@ tasks:
   - id: easy_002
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Payment Service OOMKilled"
     difficulty: easy
     max_steps: 15
@@ -180,12 +170,7 @@ tasks:
   - id: easy_003
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Disk Full — Logging Service"
     difficulty: easy
     max_steps: 15
@@ -194,12 +179,7 @@ tasks:
   - id: easy_004
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Redis Crash Loop"
     difficulty: easy
     max_steps: 15
@@ -208,12 +188,7 @@ tasks:
   - id: easy_005
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Storage Node Disk Full"
     difficulty: easy
     max_steps: 15
@@ -222,12 +197,7 @@ tasks:
   - id: easy_006
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Port Misconfiguration"
     difficulty: easy
     max_steps: 15
@@ -236,12 +206,7 @@ tasks:
   - id: easy_007
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "DB Credentials failure"
     difficulty: easy
     max_steps: 15
@@ -250,12 +215,7 @@ tasks:
   - id: medium_001
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Slow Query Cascade — Missing Index"
     difficulty: medium
     max_steps: 25
@@ -264,12 +224,7 @@ tasks:
   - id: medium_002
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Connection Pool Exhaustion"
     difficulty: medium
     max_steps: 25
@@ -278,12 +233,7 @@ tasks:
   - id: medium_003
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Memory Leak"
     difficulty: medium
     max_steps: 25
@@ -292,12 +242,7 @@ tasks:
   - id: medium_004
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "TLS Certificate Expiry"
     difficulty: medium
     max_steps: 25
@@ -306,12 +251,7 @@ tasks:
   - id: medium_005
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "DNS Misconfiguration"
     difficulty: medium
     max_steps: 25
@@ -320,12 +260,7 @@ tasks:
   - id: hard_001
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Redis Cluster Split-Brain"
     difficulty: hard
     max_steps: 40
@@ -334,12 +269,7 @@ tasks:
   - id: hard_002
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Index Corruption"
     difficulty: hard
     max_steps: 40
@@ -348,12 +278,7 @@ tasks:
   - id: hard_003
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Distributed Split-Brain"
     difficulty: hard
     max_steps: 40
@@ -362,12 +287,7 @@ tasks:
   - id: hard_004
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Config Drift"
     difficulty: hard
     max_steps: 40
@@ -376,12 +296,7 @@ tasks:
   - id: hard_005
     grader:
       type: llm
-      prompt_template: |
-        If the answer is fully correct return 0.9.
-        If partially correct return 0.5.
-        Otherwise return 0.1.
-
-        Output only a number.
+      prompt_template: "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
     name: "Rate Limiter Failure"
     difficulty: hard
     max_steps: 40

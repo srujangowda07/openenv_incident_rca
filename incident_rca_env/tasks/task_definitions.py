@@ -24,10 +24,7 @@ def _build_task_record(task: dict) -> dict:
     grader = {
         "type": raw_grader.get("type") or "llm",
         "prompt_template": raw_grader.get("prompt_template") or (
-            "If the answer is fully correct return 0.9.\n"
-            "If partially correct return 0.5.\n"
-            "Otherwise return 0.1.\n\n"
-            "Output only a number."
+            "Score the agent 0.9 if fully correct, 0.5 if partially correct, 0.1 otherwise. Output only a number."
         ),
     }
 
