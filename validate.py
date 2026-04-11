@@ -60,7 +60,7 @@ def check_yaml():
     # Hackathon Phase 2 Grader Validations
     for t in cfg["tasks"]:
         grader = t.get("grader")
-        assert isinstance(grader, dict), f"Task {t['id']} grader must be a dict format, got {type(grader)}"
+        assert isinstance(grader, dict), f"Invalid grader for task {t.get('id')}: {grader}"
         assert grader.get("type") == "llm", f"Task {t['id']} grader type must be 'llm'"
         assert "prompt_template" in grader, f"Task {t['id']} missing prompt_template"
         assert isinstance(grader["prompt_template"], str), f"Task {t['id']} prompt_template must be a string"

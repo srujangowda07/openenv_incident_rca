@@ -32,13 +32,33 @@ def _build_task_record(task: dict) -> dict:
 
 
 def _load_tasks_from_openenv() -> dict[str, dict]:
-    cfg_path = Path.cwd() / "openenv.yaml"
-    if not cfg_path.exists():
-        # Fallback if standard execution directory is not root
-        cfg_path = Path(__file__).resolve().parents[2] / "openenv.yaml"
-        
+    possible_paths = [
+        Path.cwd() / "openenv.yaml",
+        Path(__file__).resolve().parents[2] / "openenv.yaml",
+        Path("/app/openenv.yaml"),  # CRITICAL FIX
+    ]
+
+    cfg_path = None
+    for path in possible_paths:
+        if path.exists():
+            cfg_path = path
+            break
+
+    if cfg_path is None:
+        raise FileNotFoundError(
+            "openenv.yaml not found in any expected location:\n"
+            + "\n".join(str(p) for p in possible_paths)
+        )
+
+    print(f"[DEBUG] Loading openenv.yaml from: {cfg_path}")
+
     cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+
     tasks = cfg.get("tasks", [])
+
+    if not tasks:
+        raise ValueError("No tasks found in openenv.yaml")
+
     return {task["id"]: _build_task_record(task) for task in tasks}
 
 

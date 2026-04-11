@@ -8,6 +8,7 @@ from incident_rca_env.models import ActionModel, ObservationModel
 from incident_rca_env.server.incident_rca_env_environment import (
     IncidentRCAEnvironment,
 )
+from incident_rca_env.tasks.task_definitions import list_tasks
 
 
 # Optional: attach metadata (safe)
@@ -36,6 +37,15 @@ app = create_app(
     env_name="incident-rca-env",
     max_concurrent_envs=1,
 )
+
+
+@app.get("/tasks")
+def get_tasks():
+    return list_tasks()
+
+@app.get("/v1/tasks")
+def get_tasks_v1():
+    return list_tasks()
 
 
 def main():

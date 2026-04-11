@@ -153,42 +153,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        TASK:
-        {{task_description}}
-
-        AGENT TRAJECTORY:
-        {{trajectory}}
-
-        FINAL DIAGNOSIS:
-        {{agent_output}}
-
-        Evaluate based on:
-
-        1. Correctness:
-        - Correct root_cause_service AND cause_type → 0.9
-        - Correct service but wrong cause → 0.5
-
-        2. Investigation Quality:
-        - Logical debugging steps → +0.2 bonus
-        - Correct tool usage → +0.1 bonus
-
-        3. Efficiency:
-        - Minimal redundant steps → +0.1 bonus
-        - Repeated/irrelevant actions → penalty
-
-        Final Score Mapping:
-        - 0.85–0.9 → excellent (correct + efficient)
-        - 0.65–0.8 → correct but inefficient
-        - 0.45–0.6 → partial correctness
-        - 0.1–0.4 → incorrect
-
-        STRICT RULES:
-        - NEVER output 0.0 or 1.0
-        - ONLY output ONE float between 0.1 and 0.9
-        - DO NOT explain
-        - DO NOT output text
+        Output only a number.
     name: "DB Connection Pool Exhaustion"
     difficulty: easy
     max_steps: 15
@@ -198,42 +167,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        TASK:
-        {{task_description}}
-
-        AGENT TRAJECTORY:
-        {{trajectory}}
-
-        FINAL DIAGNOSIS:
-        {{agent_output}}
-
-        Evaluate based on:
-
-        1. Correctness:
-        - Correct root_cause_service AND cause_type → 0.9
-        - Correct service but wrong cause → 0.5
-
-        2. Investigation Quality:
-        - Logical debugging steps → +0.2 bonus
-        - Correct tool usage → +0.1 bonus
-
-        3. Efficiency:
-        - Minimal redundant steps → +0.1 bonus
-        - Repeated/irrelevant actions → penalty
-
-        Final Score Mapping:
-        - 0.85–0.9 → excellent (correct + efficient)
-        - 0.65–0.8 → correct but inefficient
-        - 0.45–0.6 → partial correctness
-        - 0.1–0.4 → incorrect
-
-        STRICT RULES:
-        - NEVER output 0.0 or 1.0
-        - ONLY output ONE float between 0.1 and 0.9
-        - DO NOT explain
-        - DO NOT output text
+        Output only a number.
     name: "Payment Service OOMKilled"
     difficulty: easy
     max_steps: 15
@@ -243,42 +181,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        TASK:
-        {{task_description}}
-
-        AGENT TRAJECTORY:
-        {{trajectory}}
-
-        FINAL DIAGNOSIS:
-        {{agent_output}}
-
-        Evaluate based on:
-
-        1. Correctness:
-        - Correct root_cause_service AND cause_type → 0.9
-        - Correct service but wrong cause → 0.5
-
-        2. Investigation Quality:
-        - Logical debugging steps → +0.2 bonus
-        - Correct tool usage → +0.1 bonus
-
-        3. Efficiency:
-        - Minimal redundant steps → +0.1 bonus
-        - Repeated/irrelevant actions → penalty
-
-        Final Score Mapping:
-        - 0.85–0.9 → excellent (correct + efficient)
-        - 0.65–0.8 → correct but inefficient
-        - 0.45–0.6 → partial correctness
-        - 0.1–0.4 → incorrect
-
-        STRICT RULES:
-        - NEVER output 0.0 or 1.0
-        - ONLY output ONE float between 0.1 and 0.9
-        - DO NOT explain
-        - DO NOT output text
+        Output only a number.
     name: "Disk Full — Logging Service"
     difficulty: easy
     max_steps: 15
@@ -288,42 +195,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        TASK:
-        {{task_description}}
-
-        AGENT TRAJECTORY:
-        {{trajectory}}
-
-        FINAL DIAGNOSIS:
-        {{agent_output}}
-
-        Evaluate based on:
-
-        1. Correctness:
-        - Correct root_cause_service AND cause_type → 0.9
-        - Correct service but wrong cause → 0.5
-
-        2. Investigation Quality:
-        - Logical debugging steps → +0.2 bonus
-        - Correct tool usage → +0.1 bonus
-
-        3. Efficiency:
-        - Minimal redundant steps → +0.1 bonus
-        - Repeated/irrelevant actions → penalty
-
-        Final Score Mapping:
-        - 0.85–0.9 → excellent (correct + efficient)
-        - 0.65–0.8 → correct but inefficient
-        - 0.45–0.6 → partial correctness
-        - 0.1–0.4 → incorrect
-
-        STRICT RULES:
-        - NEVER output 0.0 or 1.0
-        - ONLY output ONE float between 0.1 and 0.9
-        - DO NOT explain
-        - DO NOT output text
+        Output only a number.
     name: "Redis Crash Loop"
     difficulty: easy
     max_steps: 15
@@ -333,42 +209,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        TASK:
-        {{task_description}}
-
-        AGENT TRAJECTORY:
-        {{trajectory}}
-
-        FINAL DIAGNOSIS:
-        {{agent_output}}
-
-        Evaluate based on:
-
-        1. Correctness:
-        - Correct root_cause_service AND cause_type → 0.9
-        - Correct service but wrong cause → 0.5
-
-        2. Investigation Quality:
-        - Logical debugging steps → +0.2 bonus
-        - Correct tool usage → +0.1 bonus
-
-        3. Efficiency:
-        - Minimal redundant steps → +0.1 bonus
-        - Repeated/irrelevant actions → penalty
-
-        Final Score Mapping:
-        - 0.85–0.9 → excellent (correct + efficient)
-        - 0.65–0.8 → correct but inefficient
-        - 0.45–0.6 → partial correctness
-        - 0.1–0.4 → incorrect
-
-        STRICT RULES:
-        - NEVER output 0.0 or 1.0
-        - ONLY output ONE float between 0.1 and 0.9
-        - DO NOT explain
-        - DO NOT output text
+        Output only a number.
     name: "Storage Node Disk Full"
     difficulty: easy
     max_steps: 15
@@ -378,42 +223,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        TASK:
-        {{task_description}}
-
-        AGENT TRAJECTORY:
-        {{trajectory}}
-
-        FINAL DIAGNOSIS:
-        {{agent_output}}
-
-        Evaluate based on:
-
-        1. Correctness:
-        - Correct root_cause_service AND cause_type → 0.9
-        - Correct service but wrong cause → 0.5
-
-        2. Investigation Quality:
-        - Logical debugging steps → +0.2 bonus
-        - Correct tool usage → +0.1 bonus
-
-        3. Efficiency:
-        - Minimal redundant steps → +0.1 bonus
-        - Repeated/irrelevant actions → penalty
-
-        Final Score Mapping:
-        - 0.85–0.9 → excellent (correct + efficient)
-        - 0.65–0.8 → correct but inefficient
-        - 0.45–0.6 → partial correctness
-        - 0.1–0.4 → incorrect
-
-        STRICT RULES:
-        - NEVER output 0.0 or 1.0
-        - ONLY output ONE float between 0.1 and 0.9
-        - DO NOT explain
-        - DO NOT output text
+        Output only a number.
     name: "Port Misconfiguration"
     difficulty: easy
     max_steps: 15
@@ -423,18 +237,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "DB Credentials failure"
     difficulty: easy
     max_steps: 15
@@ -444,18 +251,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Slow Query Cascade — Missing Index"
     difficulty: medium
     max_steps: 25
@@ -465,18 +265,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Connection Pool Exhaustion"
     difficulty: medium
     max_steps: 25
@@ -486,18 +279,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Memory Leak"
     difficulty: medium
     max_steps: 25
@@ -507,18 +293,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "TLS Certificate Expiry"
     difficulty: medium
     max_steps: 25
@@ -528,18 +307,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "DNS Misconfiguration"
     difficulty: medium
     max_steps: 25
@@ -549,18 +321,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Redis Cluster Split-Brain"
     difficulty: hard
     max_steps: 40
@@ -570,18 +335,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Index Corruption"
     difficulty: hard
     max_steps: 40
@@ -591,18 +349,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Distributed Split-Brain"
     difficulty: hard
     max_steps: 40
@@ -612,18 +363,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Config Drift"
     difficulty: hard
     max_steps: 40
@@ -633,18 +377,11 @@ tasks:
     grader:
       type: llm
       prompt_template: |
-        You are evaluating an AI agent performing incident root cause analysis.
+        If the answer is fully correct return 0.9.
+        If partially correct return 0.5.
+        Otherwise return 0.1.
 
-        The agent must identify:
-        - root_cause_service
-        - cause_type
-
-        Scoring rules:
-        - 1.0 → correct service and cause
-        - 0.5 → correct service but wrong cause
-        - 0.0 → incorrect service
-
-        Return ONLY a float between 0.0 and 1.0.
+        Output only a number.
     name: "Rate Limiter Failure"
     difficulty: hard
     max_steps: 40
