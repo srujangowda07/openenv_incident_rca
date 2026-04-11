@@ -26,10 +26,19 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /app
 
+# ✅ COPY VENV (CRITICAL)
+COPY --from=builder /app/env/.venv /app/.venv
+
+# Copy code
 COPY --from=builder /app/env /app/env
 
+# Copy YAML
 COPY --from=builder /app/env/openenv.yaml /app/openenv.yaml
 
+# ✅ Use venv python
+ENV PATH="/app/.venv/bin:$PATH"
+
+# (optional but safe)
 ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
 EXPOSE 7860
