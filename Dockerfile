@@ -26,12 +26,11 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /app
 
-COPY --from=builder /app/env/.venv /app/.venv
 COPY --from=builder /app/env /app/env
+
 COPY --from=builder /app/env/openenv.yaml /app/openenv.yaml
 
-
-ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
 EXPOSE 7860
 ENV PORT=7860

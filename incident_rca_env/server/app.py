@@ -1,20 +1,22 @@
 """
-OpenEnv server entry point.
-
-Fixes applied:
-1. Removed conflicting /health and / routes
-2. Adds /tasks endpoint — required for Phase 2 hackathon validation
-3. get_metadata() override returning proper name/description
-4. main() entry point for multi-mode deployment compliance
+FastAPI application for Incident RCA OpenEnv environment.
 """
 
-import yaml
-import uvicorn
-from pathlib import Path
 from openenv.core.env_server.http_server import create_app
+
+try:
+    from incident_rca_env.models import ActionModel, ObservationModel
+    from incident_rca_env.server.incident_rca_env_environment import (
+        IncidentRCAEnvironment,
+    )
+except ImportError:
+    # Fallback for local execution
+    from models import ActionModel, ObservationModel
+    from server.incident_rca_env_environment import IncidentRCAEnvironment
+
+
+# Optional: attach metadata (safe)
 from openenv.core.env_server.types import EnvironmentMetadata
-from incident_rca_env.models import ActionModel, ObservationModel, TaskDetail
-from incident_rca_env.server.incident_rca_env_environment import IncidentRCAEnvironment
 
 
 def _get_metadata(self) -> EnvironmentMetadata:
@@ -29,16 +31,9 @@ def _get_metadata(self) -> EnvironmentMetadata:
     )
 
 
-IncidentRCAEnvironment.get_metadata = _get_metadata  # type: ignore[method-assign]
+IncidentRCAEnvironment.get_metadata = _get_metadata  # type: ignore
 
 
-def _load_tasks_from_yaml() -> list:
-    """Load tasks from task_definitions to ensure consistency."""
-    from incident_rca_env.tasks.task_definitions import list_tasks
-    return list_tasks()
-
-
-# Create the base OpenEnv FastAPI app
 app = create_app(
     IncidentRCAEnvironment,
     ActionModel,
@@ -48,28 +43,10 @@ app = create_app(
 )
 
 
-# --- Add /tasks endpoint ---
-# The hackathon Phase 2 validator calls GET /tasks to verify tasks with graders.
-_TASKS = _load_tasks_from_yaml()
-
-
-@app.get(
-    "/tasks",
-    tags=["Environment Info"],
-    summary="List all tasks",
-    response_model=list[TaskDetail],
-)
-async def list_tasks():
-    """
-    Returns the loaded tasks.
-    Each task includes its grader entrypoint, required for hackathon
-    Phase 2 validation ('Not enough tasks with graders' check).
-    """
-    return _TASKS
-
-
 def main():
-    """Main entry point for multi-mode deployment."""
+    """Run server locally."""
+    import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=7860)
 
 
