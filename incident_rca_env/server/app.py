@@ -13,8 +13,8 @@ import uvicorn
 from pathlib import Path
 from openenv.core.env_server.http_server import create_app
 from openenv.core.env_server.types import EnvironmentMetadata
-from models import ActionModel, ObservationModel, TaskDetail
-from server.incident_rca_env_environment import IncidentRCAEnvironment
+from incident_rca_env.models import ActionModel, ObservationModel, TaskDetail
+from incident_rca_env.server.incident_rca_env_environment import IncidentRCAEnvironment
 
 
 def _get_metadata(self) -> EnvironmentMetadata:
@@ -33,23 +33,9 @@ IncidentRCAEnvironment.get_metadata = _get_metadata  # type: ignore[method-assig
 
 
 def _load_tasks_from_yaml() -> list:
-    """Load tasks from openenv.yaml for the /tasks endpoint."""
-    repo_root = Path(__file__).resolve().parent.parent
-    cfg = yaml.safe_load((repo_root / "openenv.yaml").read_text(encoding="utf-8"))
-    tasks = []
-    for t in cfg.get("tasks", []):
-        tasks.append(
-            {
-                "id": t["id"],
-                "name": t.get("name", t["id"]),
-                "difficulty": t.get("difficulty", "easy"),
-                "max_steps": t.get("max_steps", 15),
-                "description": t.get("description", ""),
-                "grader": t.get("grader", ""),
-                "has_grader": bool(t.get("grader", "")),
-            }
-        )
-    return tasks
+    """Load tasks from task_definitions to ensure consistency."""
+    from incident_rca_env.tasks.task_definitions import list_tasks
+    return list_tasks()
 
 
 # Create the base OpenEnv FastAPI app

@@ -9,11 +9,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+pass  # Removed sys.path modification
 
-from environment.env import IncidentRCAEnv, ActionModel  # noqa: E402
-from graders.grader import IncidentRCAGrader  # noqa: E402
-from tasks.task_definitions import TASKS, get_task  # noqa: E402
+from incident_rca_env.environment.env import IncidentRCAEnv, ActionModel  # noqa: E402
+from incident_rca_env.grader import IncidentRCAGrader  # noqa: E402
+from incident_rca_env.tasks.task_definitions import TASKS, get_task  # noqa: E402
 
 
 SYSTEM_PROMPT = """You are an expert Site Reliability Engineer performing incident response.

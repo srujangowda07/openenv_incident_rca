@@ -5,12 +5,9 @@ from .scenario_generator import ScenarioGenerator
 from .state_manager import StateManager
 from .reward_shaper import RewardShaper
 
-# Import models from root models.py
-try:
-    from ..models import ActionModel, ObservationModel, RewardModel, InfoModel
-except ImportError:
-    # Fallback for direct execution
-    from models import ActionModel, ObservationModel, RewardModel, InfoModel
+from incident_rca_env.models import ActionModel, ObservationModel, RewardModel, InfoModel
+from incident_rca_env.tasks.task_definitions import get_task
+import json
 
 
 AVAILABLE_ACTIONS = [
@@ -26,11 +23,6 @@ class IncidentRCAEnv:
     def __init__(self, task_id: str = "easy_001", seed: int | None = None):
         self.task_id = task_id
         self.seed = seed if seed is not None else random.randint(0, 99_999)
-        # Use centralized task registry for constraints
-        try:
-            from tasks.task_definitions import get_task
-        except ImportError:
-            from ..tasks.task_definitions import get_task
         task = get_task(task_id)
         self.max_steps = task["max_steps"]
         self._generator = ScenarioGenerator(seed=self.seed)
@@ -39,13 +31,20 @@ class IncidentRCAEnv:
         self._reward_shaper: RewardShaper | None = None
         self._ready = False
 
-    def reset(self) -> ObservationModel:
+    def reset(self, task_id: str | None = None) -> ObservationModel:
         try:
+            if task_id is not None:
+                self.task_id = task_id
+                task = get_task(task_id)
+                self.max_steps = task["max_steps"]
+
             self._scenario = self._generator.generate(self.task_id)
             self._sm.reset()
             self._reward_shaper = RewardShaper(self._scenario)
             self._ready = True
+
             return self._build_obs()
+
         except Exception as e:
             print(f"[ENV RESET ERROR] {e}")
             raise RuntimeError(f"Env reset failed: {e}")
@@ -56,7 +55,6 @@ class IncidentRCAEnv:
         assert self._ready, "Call reset() before step()"
         assert not self._sm.state.done, "Episode done — call reset()"
 
-        import json
         params = action.parameters
         if isinstance(params, str):
             try:

@@ -4,12 +4,8 @@ from typing import Optional, Dict, Any
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-try:
-    from ..models import ActionModel, ObservationModel
-    from ..environment.env import IncidentRCAEnv
-except ImportError:
-    from models import ActionModel, ObservationModel
-    from environment.env import IncidentRCAEnv
+from incident_rca_env.models import ActionModel, ObservationModel
+from incident_rca_env.environment.env import IncidentRCAEnv
 
 
 class IncidentRCAEnvironment(Environment):

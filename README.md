@@ -188,8 +188,6 @@ The grader evaluates both correctness and reasoning evidence — agents cannot a
 5. Agent submits final diagnosis
 6. Grader evaluates correctness and reasoning evidence
 
-This process mirrors real-world debugging workflows.
-
 ## Architecture
 
 ![Visual Architecture](assets/architecture.png)
@@ -239,34 +237,17 @@ TASK_ID=easy_001
 SEED=42
 ```
 
-These variables allow the agent to use a pretrained LLM.
-
-The environment supports any OpenAI-compatible API (e.g., NVIDIA NIM, OpenAI, HuggingFace Router).
-
-## Inference (LLM Agent)
-
-Run the environment with a language model agent:
-
-```bash
-python inference.py
-```
-
-- The agent uses a pretrained LLM
-- It selects actions based on observations
-- It does NOT perform training
-- Requires API credentials
-
 ## Quickstart
 
 ```bash
-git clone https://github.com/srujangowda07/openenv-incident-rca
-cd incident_rca_env
+git clone https://github.com/srujangowda07/openenv_incident_rca.git
+cd openenv_incident_rca
 
 # install dependencies
 uv sync
 
 # run server
-uv run server
+uvicorn incident_rca_env.server.app:app --host 0.0.0.0 --port 7860
 
 # validate environment
 openenv validate
@@ -278,10 +259,11 @@ python inference.py
 ### Python SDK
 
 ```python
-from environment.env import IncidentRCAEnv, ActionModel
+from incident_rca_env.environment.env import IncidentRCAEnv
+from incident_rca_env.models import ActionModel
 
 env = IncidentRCAEnv(task_id="easy_001", seed=42)
-obs = env.reset()
+obs = env.reset("easy_001")
 
 # Investigate
 action = ActionModel(
@@ -289,7 +271,7 @@ action = ActionModel(
     parameters={"service": "postgres-primary", "keyword": "connection"},
 )
 obs, reward, done, info = env.step(action)
-print(f"Reward: {reward.total:+.3f} — {reward.reason}")
+print(f"Reward: {reward:+.3f}")
 
 # Query a metric
 action = ActionModel(
@@ -307,7 +289,7 @@ action = ActionModel(
     },
 )
 obs, reward, done, info = env.step(action)
-print(f"Final reward: {reward.total:+.3f}")
+print(f"Final reward: {reward:+.3f}")
 print("Ground truth:", info.ground_truth_root_cause)
 ```
 
@@ -360,39 +342,38 @@ Using a reasoning-driven LLM agent:
 
 → The agent significantly outperforms the baseline by leveraging multi-step reasoning across logs, metrics, and dependencies.
 
-*Run `python baseline/run_baseline.py --all` to reproduce.*
-
 ## Project Structure
 
+```text
+.
+├── models.py                   # Required by OpenEnv, re-exports from package
+├── openenv.yaml                # Environment schema and tasks
+├── Dockerfile                  # Container image definition
+├── pyproject.toml              # Project metadata & dependencies
+├── inference.py                # LLM agent inference script
+├── validate.py                 # Structure validation script
+├── verify_tasks.py             # Task verification script
+└── incident_rca_env/           # Main package
+    ├── __init__.py
+    ├── grader.py               # Deterministic grade calculator
+    ├── models.py               # Core Pydantic models
+    ├── environment/            # Core RL environment logic
+    │   ├── __init__.py
+    │   ├── env.py              # IncidentRCAEnv implementation
+    │   ├── canonical.py
+    │   ├── reward_shaper.py
+    │   ├── scenario_generator.py
+    │   └── state_manager.py
+    ├── server/                 # FastAPI / OpenEnv interface
+    │   ├── __init__.py
+    │   └── app.py              # Main API entrypoint
+    └── tasks/                  # Task definitions
+        ├── __init__.py
+        └── task_definitions.py
 ```
-incident_rca_env/
-├── assets/
-├── baseline/
-├── data/
-├── environment/
-│   ├── __init__.py
-│   ├── canonical.py
-│   ├── env.py
-│   ├── reward_shaper.py
-│   ├── scenario_generator.py
-│   └── state_manager.py
-├── graders/
-├── server/
-│   ├── __init__.py
-│   ├── app.py
-│   └── incident_rca_env_environment.py
-├── tasks/
-├── __init__.py
-├── client.py
-├── Dockerfile
-├── inference.py
-├── models.py
-├── openenv.yaml
-├── pyproject.toml
-├── README.md
-├── uv.lock
-└── validate.py
-```
+
+### OpenEnv Note: Missing Models Compliance
+A critical requirement of the OpenEnv CLI validation (`openenv push`) is the existence of a pure `models.py` file directly at the root of the repository. Because this project utilizes a professional namespace package structure (`incident_rca_env/`), an intentional root-level `models.py` is bundled strictly as a re-export layer: `from incident_rca_env.models import *`. This ensures full compliance with the strict OpenEnv schema parser without compromising clean project architecture.
 
 ## OpenEnv Integration
 
@@ -405,15 +386,25 @@ This environment is fully compatible with OpenEnv:
 
 Validation:
 
-```
+```bash
 openenv validate → PASSED
 ```
 
 Deployment:
 
-```
+```bash
 openenv push --repo-id <your-repo>
 ```
+
+## Evaluation Compatibility
+
+This environment fully conforms to OpenEnv Phase 2 requirements:
+
+* Supports `env.reset(task_id)` API
+* Supports multi-step interaction via `env.step(action)`
+* Includes ≥3 tasks with deterministic graders
+* Grader returns a float score (0–1)
+* Fully containerized and reproducible
 
 ## Why This Matters (Real World Impact)
 

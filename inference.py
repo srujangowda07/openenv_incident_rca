@@ -34,9 +34,9 @@ except ImportError:
 
 from openai import OpenAI
 
-from environment.env import IncidentRCAEnv, ActionModel
-from grader import IncidentRCAGrader
-from tasks.task_definitions import get_task
+from incident_rca_env.environment.env import IncidentRCAEnv, ActionModel
+from incident_rca_env.grader import IncidentRCAGrader
+from incident_rca_env.tasks.task_definitions import get_task
 
 # Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "https://integrate.api.nvidia.com/v1")

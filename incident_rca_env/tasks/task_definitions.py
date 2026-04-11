@@ -23,6 +23,7 @@ def _build_task_record(task: dict) -> dict:
     return {
         "id": task_id,
         "grader": task.get("grader", ""),
+        "has_grader": bool(task.get("grader", "")),
         "name": task.get("name", task_id.replace("_", " ").title()),
         "difficulty": difficulty,
         "max_steps": max_steps,
@@ -31,8 +32,11 @@ def _build_task_record(task: dict) -> dict:
 
 
 def _load_tasks_from_openenv() -> dict[str, dict]:
-    repo_root = Path(__file__).resolve().parents[1]
-    cfg_path = repo_root / "openenv.yaml"
+    cfg_path = Path.cwd() / "openenv.yaml"
+    if not cfg_path.exists():
+        # Fallback if standard execution directory is not root
+        cfg_path = Path(__file__).resolve().parents[2] / "openenv.yaml"
+        
     cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
     tasks = cfg.get("tasks", [])
     return {task["id"]: _build_task_record(task) for task in tasks}

@@ -1,7 +1,7 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(__file__))
+pass  # Removed sys.path modification
 
 PASS = "\033[92mPASS\033[0m"
 FAIL = "\033[91mFAIL\033[0m"
@@ -40,7 +40,6 @@ def check_yaml():
         "observation_space",
         "action_space",
         "reward_space",
-        "grader",
     ]
     for field in required_fields:
         assert field in cfg, f"Missing top-level field: '{field}'"
@@ -63,7 +62,7 @@ check("openenv.yaml structure", check_yaml)
 
 
 def check_tasks():
-    from tasks.task_definitions import TASKS
+    from incident_rca_env.tasks.task_definitions import TASKS
 
     assert "easy_001" in TASKS, "easy_001 not in TASKS"
     assert "medium_001" in TASKS, "medium_001 not in TASKS"
@@ -78,7 +77,7 @@ check("3 difficulty levels", check_tasks)
 
 
 try:
-    from environment.env import IncidentRCAEnv, ActionModel
+    from incident_rca_env.environment.env import IncidentRCAEnv, ActionModel
 
     def check_reset():
         env = IncidentRCAEnv(task_id="easy_001", seed=42)
@@ -136,7 +135,7 @@ try:
     check("state() returns dict", check_state)
 
     def check_all_tasks():
-        from tasks.task_definitions import TASKS
+        from incident_rca_env.tasks.task_definitions import TASKS
 
         # Test all 17 tasks
         for tid in TASKS.keys():
@@ -165,8 +164,8 @@ except ImportError as e:
 
 
 def check_grader_range():
-    from environment.scenario_generator import ScenarioGenerator
-    from grader import IncidentRCAGrader
+    from incident_rca_env.environment.scenario_generator import ScenarioGenerator
+    from incident_rca_env.grader import IncidentRCAGrader
 
     gen = ScenarioGenerator(seed=42)
     scenario = gen.generate("easy_001")

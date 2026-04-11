@@ -2,7 +2,7 @@ import yaml
 from pathlib import Path
 import sys
 
-sys.path.insert(0, ".")
+pass  # Removed sys.path modification
 
 cfg = yaml.safe_load(Path("openenv.yaml").read_text(encoding="utf-8"))
 tasks = cfg.get("tasks", [])
@@ -15,7 +15,7 @@ print(f"app:     {cfg.get('app')}")
 print(f"port:    {cfg.get('port')}")
 print()
 
-from server.app import _TASKS  # noqa: E402
+from incident_rca_env.server.app import _TASKS  # noqa: E402
 
 print(f"/tasks endpoint returns: {len(_TASKS)} tasks")
 print(f"tasks_with_graders: {sum(1 for t in _TASKS if t['has_grader'])}")

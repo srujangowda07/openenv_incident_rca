@@ -1,11 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from environment.canonical import normalize_cause_type, normalize_service
-
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from incident_rca_env.environment.canonical import normalize_cause_type, normalize_service
 
 
 @dataclass
@@ -40,34 +35,21 @@ class IncidentRCAGrader:
     MAX_SCORE_STRICT = 0.90
 
     def grade(self, episode: dict) -> GradeResult:
-        try:
-            breakdown: dict[str, float] = {}
-            breakdown["root_cause_service"] = self._score_service(episode)
-            breakdown["cause_type"] = self._score_cause_type(episode)
-            breakdown["tool_evidence"] = self._score_evidence(episode)
-            breakdown["penalties"] = self._score_penalties(episode)
+        breakdown: dict[str, float] = {}
+        breakdown["root_cause_service"] = self._score_service(episode)
+        breakdown["cause_type"] = self._score_cause_type(episode)
+        breakdown["tool_evidence"] = self._score_evidence(episode)
+        breakdown["penalties"] = self._score_penalties(episode)
 
-            raw_total = sum(breakdown.values())
-            total = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
+        raw_total = sum(breakdown.values())
+        total = max(self.MIN_SCORE_STRICT, min(self.MAX_SCORE_STRICT, raw_total))
 
-            return GradeResult(
-                score=total,
-                breakdown=breakdown,
-                passed=total >= self.PASS_THRESHOLD,
-                feedback=self._generate_feedback(breakdown, episode),
-            )
-        except Exception as e:
-            return GradeResult(
-                score=0.10,
-                breakdown={
-                    "root_cause_service": 0.10,
-                    "cause_type": 0.10,
-                    "tool_evidence": 0.10,
-                    "penalties": 0.00,
-                },
-                passed=False,
-                feedback=f"grader fallback due to error: {e}",
-            )
+        return GradeResult(
+            score=total,
+            breakdown=breakdown,
+            passed=total >= self.PASS_THRESHOLD,
+            feedback=self._generate_feedback(breakdown, episode),
+        )
 
     def _score_service(self, episode: dict) -> float:
         scenario = episode.get("scenario", {}) or {}
@@ -177,14 +159,10 @@ def grade(payload: dict) -> float:
     OpenEnv entry point for grading.
     Attempts to use IncidentRCAGrader for a full evaluation.
     """
-    try:
-        # Standard OpenEnv passes the episode data as the payload.
-        # We delegate to the more sophisticated IncidentRCAGrader.
-        result = IncidentRCAGrader().grade(payload)
-        score = float(result.score)
-    except Exception as e:
-        # Fallback in case of catastrophic failure
-        score = 0.10
+    # Standard OpenEnv passes the episode data as the payload.
+    # We delegate to the more sophisticated IncidentRCAGrader.
+    result = IncidentRCAGrader().grade(payload)
+    score = float(result.score)
         
     score = max(0.05, min(0.95, float(score)))
     return score

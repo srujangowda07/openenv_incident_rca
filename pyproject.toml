@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "server.app:main"
+server = "incident_rca_env.server.app:main"
 
 [tool.setuptools.package-dir]
 "" = "."
@@ -28,3 +28,9 @@ where = ["."]
 
 [tool.setuptools.package-data]
 "*" = ["openenv.yaml", "README.md"]
+
+[tool.pyright]
+extraPaths = ["."]
+executionEnvironments = [
+  { root = "." }
+]

@@ -2,7 +2,7 @@ spec_version: 1
 name: incident-rca-env
 type: space
 runtime: fastapi
-app: server.app:app
+app: incident_rca_env.server.app:app
 port: 7860
 version: "1.0.0"
 description: >

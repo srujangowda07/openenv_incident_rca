@@ -131,7 +131,7 @@ print("\n[4] IncidentRCAEnvironment")
 
 
 def check_env_reset():
-    from server.incident_rca_env_environment import IncidentRCAEnvironment
+    from incident_rca_env.server.incident_rca_env_environment import IncidentRCAEnvironment
 
     env = IncidentRCAEnvironment()
     obs = env.reset()
@@ -154,7 +154,7 @@ check("reset() returns valid ObservationModel", check_env_reset)
 
 
 def check_env_health():
-    from server.incident_rca_env_environment import IncidentRCAEnvironment
+    from incident_rca_env.server.incident_rca_env_environment import IncidentRCAEnvironment
     from openenv.core.env_server.types import EnvironmentMetadata
 
     env = IncidentRCAEnvironment()
@@ -172,7 +172,7 @@ check("get_metadata() returns EnvironmentMetadata", check_env_health)
 
 
 def check_env_state():
-    from server.incident_rca_env_environment import IncidentRCAEnvironment
+    from incident_rca_env.server.incident_rca_env_environment import IncidentRCAEnvironment
     from openenv.core.env_server.types import State
 
     env = IncidentRCAEnvironment()
@@ -190,7 +190,7 @@ print("\n[5] Pydantic model compliance")
 
 
 def check_action_model():
-    from models import ActionModel
+    from incident_rca_env.models import ActionModel
     from openenv.core.env_server.types import Action
 
     if not issubclass(ActionModel, Action):
@@ -199,7 +199,7 @@ def check_action_model():
 
 
 def check_obs_model():
-    from models import ObservationModel
+    from incident_rca_env.models import ObservationModel
     from openenv.core.env_server.types import Observation
 
     if not issubclass(ObservationModel, Observation):
