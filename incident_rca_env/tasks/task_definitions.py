@@ -20,10 +20,21 @@ def _build_task_record(task: dict) -> dict:
     task_id = task["id"]
     difficulty = _difficulty_from_task_id(task_id)
     max_steps = task.get("max_steps") or MAX_STEPS_BY_DIFFICULTY.get(difficulty, 25)
+    raw_grader = task.get("grader") or {}
+    grader = {
+        "type": raw_grader.get("type") or "llm",
+        "prompt_template": raw_grader.get("prompt_template") or (
+            "If the answer is fully correct return 0.9.\n"
+            "If partially correct return 0.5.\n"
+            "Otherwise return 0.1.\n\n"
+            "Output only a number."
+        ),
+    }
+
     return {
         "id": task_id,
-        "grader": task.get("grader", {}),
-        "has_grader": bool(task.get("grader", "")),
+        "grader": grader,
+        "has_grader": True,
         "name": task.get("name", task_id.replace("_", " ").title()),
         "difficulty": difficulty,
         "max_steps": max_steps,
@@ -31,8 +42,11 @@ def _build_task_record(task: dict) -> dict:
     }
 
 
+import os
+
 def _load_tasks_from_openenv() -> dict[str, dict]:
     possible_paths = [
+        Path(os.environ.get("OPENENV_YAML_PATH", "openenv.yaml")).resolve(),
         Path.cwd() / "openenv.yaml",
         Path(__file__).resolve().parents[2] / "openenv.yaml",
         Path("/app/openenv.yaml"),  # CRITICAL FIX
