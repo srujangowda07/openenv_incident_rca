@@ -21,7 +21,7 @@ from openenv.core.env_server.types import EnvironmentMetadata
 
 def _get_metadata(self) -> EnvironmentMetadata:
     return EnvironmentMetadata(
-        name="incident_rca_env",
+        name="incident-rca-env",
         description=(
             "Reinforcement learning environment for training AI agents to perform "
             "incident response and root cause analysis on production microservice systems."
@@ -38,7 +38,7 @@ app = create_app(
     IncidentRCAEnvironment,
     ActionModel,
     ObservationModel,
-    env_name="incident_rca_env",
+    env_name="incident-rca-env",
     max_concurrent_envs=1,
 )
 
