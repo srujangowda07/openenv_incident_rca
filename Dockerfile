@@ -19,26 +19,21 @@ COPY . /app/env
 WORKDIR /app/env
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+    uv sync --frozen && \
+    . .venv/bin/activate && \
+    pip install .
 
 # ---------------- RUNTIME ----------------
 FROM ${BASE_IMAGE}
 
 WORKDIR /app
 
-# ✅ COPY VENV (CRITICAL)
 COPY --from=builder /app/env/.venv /app/.venv
 
-# Copy code
 COPY --from=builder /app/env /app/env
-
-# Copy YAML
 COPY --from=builder /app/env/openenv.yaml /app/openenv.yaml
-
-# ✅ Use venv python
 ENV PATH="/app/.venv/bin:$PATH"
 
-# (optional but safe)
 ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
 EXPOSE 7860
