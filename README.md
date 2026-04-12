@@ -1,4 +1,13 @@
-﻿# Incident RCA Environment
+﻿---
+title: Incident RCA Environment
+emoji: 🔧
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
+# Incident RCA Environment
 
 IncidentRCAEnv is a reinforcement learning environment designed for training and evaluating agents on distributed system root cause analysis through multi-step diagnostic investigation.
 
