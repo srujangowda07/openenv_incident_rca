@@ -106,7 +106,7 @@ def normalize_cause_type(raw_input: str) -> str:
 
     Matching strategy (in order):
       1. Direct exact match (case-insensitive, stripped).
-      2. Multi-word phrase scoring — each phrase counts as +1.  A phrase only
+      2. Multi-word phrase scoring   each phrase counts as +1.  A phrase only
          scores if it actually appears as a contiguous substring, preventing
          single common words from bleeding across unrelated categories.
       3. Ties are broken by _PRIORITY_ORDER (deterministic).

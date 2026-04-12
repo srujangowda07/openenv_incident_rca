@@ -13,7 +13,7 @@ class GradeResult:
 
 class IncidentRCAGrader:
     """
-    Deterministic grader. Score range: 0.0 – 1.0.
+    Deterministic grader. Score range: 0.0   1.0.
     Dimensions and weights match openenv.yaml exactly:
 
         root_cause_service  0.50
@@ -45,31 +45,25 @@ class IncidentRCAGrader:
         else:
             # Assume env is an IncidentRCAEnvironment or IncidentRCAEnv instance
             try:
-                # Try to get data from IncidentRCAEnvironment wrapper
-                if hasattr(env, "_env") and env._env is not None:
-                    inner_env = env._env
+                # Recursively unwrap environments if nested
+                curr = env
+                while hasattr(curr, "_env") and curr._env is not None and curr._env is not curr:
+                    curr = curr._env
+                
+                if hasattr(curr, "state"):
                     episode = {
-                        "scenario": getattr(inner_env, "_scenario", {}),
-                        "task_id": getattr(inner_env, "task_id", ""),
-                        "final_state": inner_env.state(),
-                        "info": inner_env._build_info(done=True).model_dump()
-                        if hasattr(inner_env, "_build_info")
-                        else {},
-                    }
-                elif hasattr(env, "state"):
-                    # Might be the inner IncidentRCAEnv directly
-                    episode = {
-                        "scenario": getattr(env, "_scenario", {}),
-                        "task_id": getattr(env, "task_id", ""),
-                        "final_state": env.state(),
-                        "info": env._build_info(done=True).model_dump()
-                        if hasattr(env, "_build_info")
-                        else {},
+                        "scenario": getattr(curr, "_scenario", {}),
+                        "task_id": getattr(curr, "task_id", ""),
+                        "final_state": curr.state(),
+                        "info": curr._build_info(done=True).model_dump()
+                        if hasattr(curr, "_build_info")
+                        else {"steps_taken": getattr(curr, "_state", {}).step if hasattr(curr, "_state") else 1},
                     }
                 else:
                     episode = {}
             except Exception:
                 episode = {}
+
 
         breakdown: dict[str, float] = {}
         breakdown["root_cause_service"] = self._score_service(episode)
@@ -115,7 +109,11 @@ class IncidentRCAGrader:
         final_state = episode.get("final_state", {}) or {}
         ground_truth = normalize_service(root_cause.get("service", ""))
         diagnosed = normalize_service(final_state.get("diagnosed_service") or "")
+        if not diagnosed:
+            return 0.00
+            
         return self.W_SERVICE if diagnosed == ground_truth else 0.00
+
 
     def _score_cause_type(self, episode: dict) -> float:
         scenario = episode.get("scenario", {}) or {}
@@ -124,7 +122,7 @@ class IncidentRCAGrader:
         ground_truth_svc = normalize_service(root_cause.get("service", ""))
         diagnosed_svc = normalize_service(final_state.get("diagnosed_service") or "")
 
-        if diagnosed_svc != ground_truth_svc:
+        if not diagnosed_svc or diagnosed_svc != ground_truth_svc:
             return 0.00
 
         ground_truth_cause = normalize_cause_type(root_cause.get("cause_type", ""))
@@ -189,14 +187,14 @@ class IncidentRCAGrader:
         lines = []
 
         if breakdown.get("root_cause_service", 0.0) == 0.0:
-            lines.append(f"wrong root cause service — correct: '{rca_service}'")
+            lines.append(f"wrong root cause service   correct: '{rca_service}'")
 
         if breakdown.get("cause_type", 0.0) == 0.0:
             if breakdown.get("root_cause_service", 0.0) > 0.0:
                 # Service was correct but cause was wrong.
                 diagnosed_cause = final_state.get("diagnosed_cause") or "(none)"
                 lines.append(
-                    f"cause type mismatch — got: '{diagnosed_cause}', "
+                    f"cause type mismatch   got: '{diagnosed_cause}', "
                     f"correct: '{rca_cause}'"
                 )
 

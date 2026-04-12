@@ -727,7 +727,7 @@ class ScenarioGenerator:
                     0,
                     "redis-cluster",
                     "CRITICAL",
-                    "CLUSTER INFO: cluster_state=fail — split-brain",
+                    "CLUSTER INFO: cluster_state=fail   split-brain",
                 )
             ],
             "metrics": [

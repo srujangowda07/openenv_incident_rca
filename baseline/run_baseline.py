@@ -11,9 +11,9 @@ load_dotenv()
 
 pass  # Removed sys.path modification
 
-from incident_rca_env.environment.env import IncidentRCAEnv, ActionModel  # noqa: E402
-from incident_rca_env.grader import IncidentRCAGrader  # noqa: E402
-from incident_rca_env.tasks.task_definitions import TASKS, get_task  # noqa: E402
+from incident_rca_env.environment.env import IncidentRCAEnv, ActionModel  
+from incident_rca_env.grader import IncidentRCAGrader  
+from incident_rca_env.tasks.task_definitions import TASKS, get_task  
 
 
 SYSTEM_PROMPT = """You are an expert Site Reliability Engineer performing incident response.
@@ -21,7 +21,7 @@ You are given an incident environment with logs, metrics, traces, and service de
 
 Your goal is to diagnose the root cause service and failure type, then submit your diagnosis.
 
-Available actions — respond ONLY with valid JSON matching one of these schemas:
+Available actions - respond ONLY with valid JSON matching one of these schemas:
 
 grep_logs:
   {"action_type": "grep_logs", "parameters": {"service": "<service-name>", "keyword": "<search-term>"}}
@@ -41,7 +41,7 @@ submit_diagnosis:
 IMPORTANT RULES:
 - All parameters shown above are REQUIRED. Omitting any parameter causes an invalid action penalty.
 - metric_name is REQUIRED for query_metrics (examples: cpu_usage, memory_usage_mb, error_rate, latency_p99)
-- submit_diagnosis ENDS the episode — only call it when you are confident.
+- submit_diagnosis ENDS the episode - only call it when you are confident.
 - Do NOT repeat the exact same tool call with the same parameters (penalty applies).
 
 INVESTIGATION STRATEGY:
@@ -50,7 +50,7 @@ INVESTIGATION STRATEGY:
 3. Use grep_logs on suspicious services to find error messages.
 4. Use query_metrics to confirm timing and severity of degradation.
 5. Use fetch_traces to see the full request path (trace IDs appear in alerts/logs).
-6. Look for the DEEPEST service in the chain that is failing — that is the root cause.
+6. Look for the DEEPEST service in the chain that is failing - that is the root cause.
 7. Call submit_diagnosis when you are confident (>80%) of the root cause.
 
 Respond with ONLY the JSON action object. No explanation. No markdown. Just the JSON."""
@@ -61,7 +61,7 @@ def build_user_prompt(obs: dict, step: int) -> str:
     for h in obs.get("history", []):
         history_lines += f"\n  Step {h.get('action')}: reward={h.get('reward', 0):+.3f}"
 
-    return f"""STEP {step} of {obs.get("max_steps", 25)} — INCIDENT ENVIRONMENT STATE
+    return f"""STEP {step} of {obs.get("max_steps", 25)} - INCIDENT ENVIRONMENT STATE
 
 === TASK ===
 {obs.get("task_description", "")}
@@ -174,7 +174,7 @@ def run_episode(
         actions_taken.append((action.model_dump(), reward.model_dump()))
 
         if verbose:
-            print(f"    Reward: {reward.total:+.3f} — {reward.reason}")
+            print(f"    Reward: {reward.total:+.3f} - {reward.reason}")
 
         if done:
             break
@@ -222,11 +222,11 @@ def grade_episode(episode: dict, verbose: bool = True) -> dict:
         for dim, score in result.breakdown.items():
             if isinstance(score, float) and score != 0.0:
                 bar_len = max(0, int(abs(score) * 20))
-                bar = "█" * bar_len + "░" * (20 - bar_len)
+                bar = "#" * bar_len + "-" * (20 - bar_len)
                 sign = "-" if score < 0 else " "
                 print(f"    {dim:<25} {sign}{bar}  {score:+.3f}")
             else:
-                print(f"    {dim:<25} {'░' * 20}  {score:+.3f}")
+                print(f"    {dim:<25} {'-' * 20}  {score:+.3f}")
         print(f"  Feedback: {result.feedback}")
 
     return {
@@ -309,10 +309,10 @@ def _run_dry(task_id: str):
         obs, reward, done, info = env.step(action)
         actions_taken.append((action.model_dump(), reward.model_dump()))
         print(f"  {action.action_type}({json.dumps(action.parameters)})")
-        print(f"    reward={reward.total:+.3f} — {reward.reason}")
+        print(f"    reward={reward.total:+.3f} - {reward.reason}")
 
     if info is None:
-        print("  [WARN] No steps taken — episode may have ended immediately.")
+        print("  [WARN] No steps taken - episode may have ended immediately.")
         return
 
     root_cause = {}
@@ -362,14 +362,14 @@ def main():
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run without calling LLM — uses scripted valid actions for smoke testing",
+        help="Run without calling LLM - uses scripted valid actions for smoke testing",
     )
 
     args = parser.parse_args()
 
     if args.dry_run:
         task = args.task or "easy_001"
-        print(f"[DRY RUN] Using scripted actions — no LLM calls (task: {task})")
+        print(f"[DRY RUN] Using scripted actions - no LLM calls (task: {task})")
         _run_dry(task)
         return
 

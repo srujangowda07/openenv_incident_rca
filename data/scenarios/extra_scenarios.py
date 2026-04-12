@@ -19,10 +19,10 @@ def _gen_timestamps(base: datetime, count: int) -> list[str]:
     ]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+#                                                                              
 #  MEDIUM_002: CPU Throttling Cascade
 #  Root cause: cpu_limit set too low in kubernetes deployment
-# ─────────────────────────────────────────────────────────────────────────────
+#                                                                              
 
 
 def medium_cpu_throttling() -> dict:
@@ -38,7 +38,7 @@ def medium_cpu_throttling() -> dict:
                 "id": "ALT-001",
                 "service": "checkout-service",
                 "severity": "critical",
-                "message": "p99 latency 14s — SLA breach",
+                "message": "p99 latency 14s   SLA breach",
                 "time": "16:02:10",
             },
             {
@@ -91,14 +91,14 @@ def medium_cpu_throttling() -> dict:
                 -3,
                 "pricing-engine",
                 "WARN",
-                "CPU throttled: container limited to 100m cores — 92% throttle ratio",
+                "CPU throttled: container limited to 100m cores   92% throttle ratio",
             ),
             _log(
                 base,
                 -2,
                 "pricing-engine",
                 "WARN",
-                "Request processing time 8000ms — CPU starvation",
+                "Request processing time 8000ms   CPU starvation",
             ),
             _log(
                 base,
@@ -149,13 +149,13 @@ def medium_cpu_throttling() -> dict:
                     "service": "pricing-engine",
                     "duration_ms": 13900,
                     "status": "slow",
-                    "error": "CPU throttled — container limited to 100m millicores",
+                    "error": "CPU throttled   container limited to 100m millicores",
                 },
             ]
         },
         "runbooks": {
             "kubernetes_cpu_throttling": (
-                "1. Run kubectl describe pod <pod-name> — check cpu limits. "
+                "1. Run kubectl describe pod <pod-name>   check cpu limits. "
                 "2. Check HPA/VPA configuration. "
                 "3. Increase cpu_limit in deployment manifest. "
                 "4. Rollback deployment if accidental limit reduction."
@@ -176,10 +176,10 @@ def medium_cpu_throttling() -> dict:
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  HARD_002: DNS Resolution Failure — Multi-Service Impact
+#                                                                              
+#  HARD_002: DNS Resolution Failure   Multi-Service Impact
 #  Red herring: a noisy but unrelated certificate expiry alert
-# ─────────────────────────────────────────────────────────────────────────────
+#                                                                              
 
 
 def hard_dns_failure() -> dict:
@@ -188,7 +188,7 @@ def hard_dns_failure() -> dict:
         "description": (
             "CRITICAL P0: 8 services reporting connection failures to external dependencies. "
             "Started 07:03 UTC. Alerts from multiple teams simultaneously. "
-            "One team reports a certificate expiry — may or may not be related. "
+            "One team reports a certificate expiry   may or may not be related. "
             "10 services in scope. Find the single root cause."
         ),
         "alerts": [
@@ -217,14 +217,14 @@ def hard_dns_failure() -> dict:
                 "id": "ALT-004",
                 "service": "cdn-service",
                 "severity": "warning",
-                "message": "TLS certificate expires in 2 days — renewal pending",  # RED HERRING
+                "message": "TLS certificate expires in 2 days   renewal pending",  # RED HERRING
                 "time": "07:00:00",
             },
             {
                 "id": "ALT-005",
                 "service": "monitoring",
                 "severity": "critical",
-                "message": "datadog.com unreachable — metrics pipeline down",
+                "message": "datadog.com unreachable   metrics pipeline down",
                 "time": "07:03:15",
             },
             {
@@ -278,21 +278,21 @@ def hard_dns_failure() -> dict:
                 -5,
                 "network-ops",
                 "INFO",
-                "Firewall rule update: egress ACL rule 47 modified — UDP port 53 blocked on prod-vpc",
+                "Firewall rule update: egress ACL rule 47 modified   UDP port 53 blocked on prod-vpc",
             ),
             _log(
                 base,
                 -3,
                 "core-dns",
                 "ERROR",
-                "Upstream resolver 8.8.8.8:53 unreachable — UDP 53 blocked by firewall ACL",
+                "Upstream resolver 8.8.8.8:53 unreachable   UDP 53 blocked by firewall ACL",
             ),
             _log(
                 base,
                 -2,
                 "core-dns",
                 "CRITICAL",
-                "All external DNS resolution failing — serving NXDOMAIN for all external hostnames",
+                "All external DNS resolution failing   serving NXDOMAIN for all external hostnames",
             ),
             _log(
                 base,
@@ -320,7 +320,7 @@ def hard_dns_failure() -> dict:
                 0,
                 "cdn-service",
                 "WARN",
-                "TLS certificate expires 2026-03-23 — acme renewal job pending",
+                "TLS certificate expires 2026-03-23   acme renewal job pending",
             ),  # Red herring
             _log(
                 base,
@@ -367,7 +367,7 @@ def hard_dns_failure() -> dict:
                     "service": "payment-gateway",
                     "duration_ms": 2990,
                     "status": "error",
-                    "error": "DNS resolution failed: stripe.com NXDOMAIN — core-dns upstream blocked",
+                    "error": "DNS resolution failed: stripe.com NXDOMAIN   core-dns upstream blocked",
                 },
             ],
             "req-auth-2e3f": [
@@ -376,7 +376,7 @@ def hard_dns_failure() -> dict:
                     "service": "auth-service",
                     "duration_ms": 2985,
                     "status": "error",
-                    "error": "DNS resolution failed: oauth2.googleapis.com — upstream resolver unreachable",
+                    "error": "DNS resolution failed: oauth2.googleapis.com   upstream resolver unreachable",
                 },
             ],
         },

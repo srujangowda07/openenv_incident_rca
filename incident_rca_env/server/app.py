@@ -30,7 +30,7 @@ def health():
 
 @app.get("/tasks")
 def get_tasks():
-    """Return all tasks with graders — required by hackathon validator."""
+    """Return all tasks with graders   required by hackathon validator."""
     tasks = list_tasks()
     result = []
     for t in tasks:
@@ -95,7 +95,8 @@ try:
 
 except Exception as e:
     import traceback
-    print(f"[WARN] Could not mount RL env routes: {e}")
+    import logging
+    logging.warning(f"[WARN] Could not mount RL env routes: {e}")
     traceback.print_exc()
 
     # Fallback stubs so validator doesn't 500

@@ -24,7 +24,7 @@ HF_TOKEN = os.getenv("HF_TOKEN", "")
 SEED = int(os.getenv("SEED", "42"))
 ENV_NAME = "incident-rca-env"
 
-# Score constants — validator strict range
+# Score constants - validator strict range
 SCORE_MIN = 0.01
 SCORE_MAX = 0.99
 
@@ -77,7 +77,7 @@ Allowed cause_type values:
 - "rate limiter failure"
 - "unexpected service failure"
 
-Available actions — respond ONLY with valid JSON:
+Available actions - respond ONLY with valid JSON:
 
 grep_logs:
 {"action_type": "grep_logs", "parameters": {"service": "<name>", "keyword": "<term>"}}
@@ -99,7 +99,7 @@ Rules:
 - All parameters are required. Missing parameters incur a penalty.
 - metric_name is required for query_metrics.
 - Do NOT repeat the same action with the same parameters.
-- Avoid unnecessary actions — each step must provide new information.
+- Avoid unnecessary actions - each step must provide new information.
 - Call submit_diagnosis as soon as strong evidence is found.
 
 Strategy:

@@ -99,8 +99,11 @@ The environment uses a deterministic, efficiency-aware grading system to calcula
 
 Score = (Base Accuracy x 0.85) + (Efficiency x 0.15)
 
+Score = (Base Accuracy x 0.85) + (Efficiency x 0.15)
+
 > [!NOTE]
-> This environment implements a dual-evaluator system. The `openenv.yaml` includes LLM-based graders for seamless platform compatibility and universal validator support. However, the core environment internally supports a highly sophisticated, deterministic Python-based grader used for deep local evaluation and efficiency-blended scoring.
+> This environment uses a **high-fidelity, deterministic class-based grading system** for both local and platform evaluation. Scores are strictly clamped to (0.01, 0.99) to satisfy OpenEnv validator constraints and ensure reproducible results.
+
 
 
 ### Accuracy Components
@@ -195,7 +198,7 @@ All failure scenarios, dependency graphs, and incident states are defined in `in
 All scenarios are generated deterministically from a fixed seed. This ensures that benchmark results are reproducible across different models and evaluation runs.
 
 ### Current Limitations
-- The environment currently focus on single root-cause incidents. 
+- The environment currently focuses on single root-cause incidents. 
 - Dependency graphs are static within an episode and do not reflect real-time network changes.
 
 ## Future Improvements

@@ -48,7 +48,7 @@ class RewardShaper:
             return v, {action: v}, f"correct dependency step toward root: {service}"
 
         v = REWARD_TABLE["wrong_direction"]
-        return v, {action: v}, f"wrong direction — service not in cascade: {service}"
+        return v, {action: v}, f"wrong direction   service not in cascade: {service}"
 
     def reward_grep_logs(self, service: str) -> tuple[float, dict, str]:
         return self._evaluate_service_progress(service, "grep_logs")
