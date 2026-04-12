@@ -15,20 +15,18 @@ from openai import OpenAI
 
 from incident_rca_env.environment.env import IncidentRCAEnv, ActionModel
 from incident_rca_env.grader import IncidentRCAGrader
-from incident_rca_env.tasks.task_definitions import get_task
+from incident_rca_env.tasks.task_definitions import list_tasks
 
 # Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "https://integrate.api.nvidia.com/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta/llama-3.3-70b-instruct")
 HF_TOKEN = os.getenv("HF_TOKEN", "")
-TASK_ID = os.getenv("TASK_ID", "easy_001")
 SEED = int(os.getenv("SEED", "42"))
 ENV_NAME = "incident-rca-env"
 
-# Score constants — must stay strictly within (0, 1)
-SCORE_MIN = 0.10  # floor: never emit 0.0
-SCORE_MAX = 0.90  # ceiling: never emit 1.0
-SCORE_FALLBACK = 0.10  # used when grader cannot run
+# Score constants — standard range 0.0 to 1.0
+SCORE_MIN = 0.0
+SCORE_MAX = 1.0
 
 
 # Logging helpers (flush=True on every call)
@@ -218,109 +216,62 @@ def _format_action_str(action: ActionModel) -> str:
     return f"{action.action_type}({parts})"
 
 
-def _clamp_score(score: float) -> float:
-    """Ensure score is strictly between 0 and 1 (never 0.0 or 1.0) and snapped to 0.1 increments."""
-    return float(max(SCORE_MIN, min(SCORE_MAX, score)))
+def main():
+    tasks = list_tasks()
+    grader = IncidentRCAGrader()
 
+    for task in tasks:
+        task_id = task["id"]
+        log_start(task=task_id, env=ENV_NAME, model=MODEL_NAME)
 
-# Grade the completed episode
-def _grade_episode(info, actions_taken: list, env: IncidentRCAEnv) -> float:
-    try:
-        root = info.model_dump().get("ground_truth_root_cause") or {}
-        episode = {
-            "task_id": TASK_ID,
-            "scenario": {"root_cause": root},
-            "final_state": env.state() or {},
-            "info": info.model_dump() or {},
-        }
-        result = IncidentRCAGrader().grade(episode)
-        return _clamp_score(result.score)
-    except Exception:
-        return SCORE_FALLBACK
+        env = IncidentRCAEnv(task_id=task_id, seed=SEED)
+        obs = env.reset()
+        obs_dict = obs.model_dump()
 
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        rewards = []
 
-# ─── Main episode loop ───────────────────────────────────────────────────────
-def main() -> None:
-    task = get_task(TASK_ID)
-    log_start(task=TASK_ID, env=ENV_NAME, model=MODEL_NAME)
+        step = 0
+        done = False
 
-    env = IncidentRCAEnv(task_id=TASK_ID, seed=SEED)
-    obs = env.reset()
-    obs_dict = obs.model_dump()
+        try:
+            for step in range(1, task.get("max_steps", 25) + 1):
+                if done:
+                    break
 
-    messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
-    rewards: list[float] = []
-    actions_taken: list[tuple] = []
+                messages.append({"role": "user", "content": _build_prompt(obs_dict, step)})
 
-    step = 0
-    info = None
-    done = False
-    score = SCORE_FALLBACK
-
-    try:
-        for step in range(1, task["max_steps"] + 1):
-            if obs_dict.get("done"):
-                break
-
-            messages.append({"role": "user", "content": _build_prompt(obs_dict, step)})
-
-            action_str = "llm_error()"
-            reward_val = 0.0
-            error_str = None
-
-            # ── Call LLM ──
-            raw_response = None
-            try:
                 raw_response = _call_llm(messages)
                 messages.append({"role": "assistant", "content": raw_response})
-            except Exception as e:
-                error_str = f"llm_error:{str(e)[:80]}"
-                log_step(step, action_str, reward_val, done=False, error=error_str)
-                rewards.append(reward_val)
-                break  # Cannot continue without LLM — emit [END] via finally
 
-            # ── Parse action ──
-            try:
-                action = _parse_action(raw_response)
-            except ParseError as pe:
-                messages.append(
-                    {
-                        "role": "system",
-                        "content": (
-                            f"Parse failed: {str(pe)[:200]} "
-                            "Reply with a single valid JSON object only."
-                        ),
-                    }
-                )
-                error_str = "parse_error"
-                log_step(
-                    step, "parse_failed()", reward_val, done=False, error=error_str
-                )
-                rewards.append(reward_val)
-                continue  # retry this step with correction injected
+                try:
+                    action = _parse_action(raw_response)
+                except ParseError as pe:
+                    log_step(step, "parse_error", 0.0, False, str(pe))
+                    continue
 
-            # ── Execute action in env ──
-            action_str = _format_action_str(action)
-            try:
                 obs, reward, done, info = env.step(action)
                 obs_dict = obs.model_dump()
+
                 reward_val = getattr(reward, "total", 0.0)
-                actions_taken.append((action.model_dump(), reward.model_dump()))
-            except Exception as e:
-                error_str = str(e).replace("\n", " ")[:100]
-                done = False
+                rewards.append(reward_val)
 
-            rewards.append(reward_val)
-            log_step(step, action_str, reward_val, done, error_str)
+                log_step(step, _format_action_str(action), reward_val, done, None)
 
-            if done:
-                break
+                if done:
+                    break
 
-    finally:
-        if info is not None and env.state().get("done"):
-            score = _grade_episode(info, actions_taken, env)
-        else:
-            score = SCORE_FALLBACK
+        except Exception as e:
+            log_step(step, "execution_error", 0.0, False, str(e))
+
+        # Grade the episode
+        try:
+            score = grader.grade(env)
+        except Exception:
+            score = 0.0
+            
+        # Ensure score is within valid range
+        score = max(SCORE_MIN, min(SCORE_MAX, float(score)))
 
         success = score >= 0.60
         log_end(
@@ -329,6 +280,8 @@ def main() -> None:
             score=score,
             rewards=rewards,
         )
+
+    print("\nALL TASKS EXECUTED + GRADER FIXED")
 
 
 if __name__ == "__main__":

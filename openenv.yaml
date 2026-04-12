@@ -4,72 +4,156 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 7860
-
 tasks:
-  - name: easy_001
-    difficulty: easy
-    description: api-gateway 502 errors caused by postgres connection pool exhaustion
-
-  - name: easy_002
-    difficulty: easy
-    description: payment-service pods crashing due to memory leak in unbounded cache
-
-  - name: easy_003
-    difficulty: easy
-    description: logging-service down because disk full and log rotation disabled
-
-  - name: easy_004
-    difficulty: easy
-    description: Redis container crash loop causing cache failures
-
-  - name: easy_005
-    difficulty: easy
-    description: storage-node-3 disk capacity 100% due to cleanup job failure
-
-  - name: easy_006
-    difficulty: easy
-    description: auth-service unreachable due to targetPort mismatch in k8s service
-
-  - name: easy_007
-    difficulty: easy
-    description: billing-service DB authentication failure due to rotated password
-
-  - name: medium_001
-    difficulty: medium
-    description: schema migration dropped DB index causing service cascade
-
-  - name: medium_002
-    difficulty: medium
-    description: database connection pool exhaustion under heavy load
-
-  - name: medium_003
-    difficulty: medium
-    description: memory leak in recommendation engine causing degradation
-
-  - name: medium_004
-    difficulty: medium
-    description: TLS certificate expired causing handshake failures
-
-  - name: medium_005
-    difficulty: medium
-    description: DNS resolution failure due to CoreDNS corruption
-
-  - name: hard_001
-    difficulty: hard
-    description: Redis cluster split-brain due to network partition
-
-  - name: hard_002
-    difficulty: hard
-    description: InnoDB index corruption causing data inconsistency
-
-  - name: hard_003
-    difficulty: hard
-    description: distributed etcd split-brain due to network partition
-
-  - name: hard_004
-    difficulty: hard
-    description: Istio configuration drift causing routing inconsistency
-
-  - name: hard_005
-    difficulty: hard
-    description: global rate limiter dropping valid traffic due to overflow
+- id: easy_001
+  name: easy_001
+  difficulty: easy
+  description: api-gateway 502 errors caused by postgres connection pool exhaustion
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: easy_002
+  name: easy_002
+  difficulty: easy
+  description: payment-service pods crashing due to memory leak in unbounded cache
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: easy_003
+  name: easy_003
+  difficulty: easy
+  description: logging-service down because disk full and log rotation disabled
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: easy_004
+  name: easy_004
+  difficulty: easy
+  description: Redis container crash loop causing cache failures
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: easy_005
+  name: easy_005
+  difficulty: easy
+  description: storage-node-3 disk capacity 100% due to cleanup job failure
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: easy_006
+  name: easy_006
+  difficulty: easy
+  description: auth-service unreachable due to targetPort mismatch in k8s service
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: easy_007
+  name: easy_007
+  difficulty: easy
+  description: billing-service DB authentication failure due to rotated password
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: medium_001
+  name: medium_001
+  difficulty: medium
+  description: schema migration dropped DB index causing service cascade
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: medium_002
+  name: medium_002
+  difficulty: medium
+  description: database connection pool exhaustion under heavy load
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: medium_003
+  name: medium_003
+  difficulty: medium
+  description: memory leak in recommendation engine causing degradation
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: medium_004
+  name: medium_004
+  difficulty: medium
+  description: TLS certificate expired causing handshake failures
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: medium_005
+  name: medium_005
+  difficulty: medium
+  description: DNS resolution failure due to CoreDNS corruption
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: hard_001
+  name: hard_001
+  difficulty: hard
+  description: Redis cluster split-brain due to network partition
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: hard_002
+  name: hard_002
+  difficulty: hard
+  description: InnoDB index corruption causing data inconsistency
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: hard_003
+  name: hard_003
+  difficulty: hard
+  description: distributed etcd split-brain due to network partition
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: hard_004
+  name: hard_004
+  difficulty: hard
+  description: Istio configuration drift causing routing inconsistency
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+- id: hard_005
+  name: hard_005
+  difficulty: hard
+  description: global rate limiter dropping valid traffic due to overflow
+  grader:
+    type: llm
+    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
+      0.1 otherwise. Output only a number.
+version: 1.0.0
+observation_space:
+  type: json
+action_space:
+  type: json
+  fields:
+    action_type:
+      type: string
+      enum:
+      - grep_logs
+      - query_metrics
+      - fetch_traces
+      - query_dependencies
+      - submit_diagnosis
+reward_space:
+  type: float
