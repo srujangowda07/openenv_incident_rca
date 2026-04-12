@@ -1,6 +1,6 @@
 ﻿---
 title: Incident RCA Environment
-emoji: tool
+emoji: 🔧
 colorFrom: blue
 colorTo: green
 sdk: docker
