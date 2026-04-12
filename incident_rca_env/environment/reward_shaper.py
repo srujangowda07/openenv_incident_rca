@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 from .canonical import normalize_cause_type, normalize_service
 
 

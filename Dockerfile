@@ -1,4 +1,4 @@
-FROM ghcr.io/meta-pytorch/openenv-base:latest
+﻿FROM ghcr.io/meta-pytorch/openenv-base:latest
 
 WORKDIR /app
 

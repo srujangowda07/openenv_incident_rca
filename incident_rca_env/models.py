@@ -1,4 +1,4 @@
-from openenv.core.env_server.types import Action, Observation
+﻿from openenv.core.env_server.types import Action, Observation
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 

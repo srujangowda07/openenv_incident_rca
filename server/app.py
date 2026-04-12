@@ -1,4 +1,4 @@
-from incident_rca_env.server.app import app, get_tasks
+﻿from incident_rca_env.server.app import app, get_tasks
 
 def main():
     import uvicorn

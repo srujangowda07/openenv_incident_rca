@@ -1,4 +1,4 @@
-"""
+﻿"""
 FastAPI application for Incident RCA OpenEnv environment.
 """
 from __future__ import annotations
