@@ -76,9 +76,14 @@ class IncidentRCAGrader:
         breakdown["penalties"] = self._score_penalties(episode)
 
         raw_total = sum(breakdown.values())
-        score = max(0.0, min(1.0, raw_total))
+        score = float(raw_total)
 
-        return float(score)
+        if score <= 0.0:
+            score = 0.01
+        elif score >= 1.0:
+            score = 0.99
+
+        return score
 
     def _score_service(self, episode: dict) -> float:
         scenario = episode.get("scenario", {}) or {}

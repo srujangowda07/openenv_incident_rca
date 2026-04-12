@@ -230,15 +230,15 @@ def check_grader_range():
     }
 
     score = grader.grade(episode)
-    assert 0.0 <= score <= 1.0, (
-        f"Score out of range [0.0, 1.0]: {score}"
+    assert 0.0 < score < 1.0, (
+        f"Score out of range (0.0, 1.0): {score}"
     )
     assert score >= 0.60, (
         f"Perfect episode should pass threshold (0.60). Got: {score}"
     )
 
 
-check("grader score in [0.0, 1.0]", check_grader_range)
+check("grader score in (0.0, 1.0)", check_grader_range)
 
 
 passed = sum(results)

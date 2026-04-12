@@ -152,7 +152,7 @@ This design ensures:
 This project natively utilizes a dual-grading system to optimize reliability and API costs:
 
 **1. Production Grader (Hackathon Validator)**
-The official Phase 2 OpenEnv platform evaluates trajectories directly via its internal LLM, reading `openenv.yaml`. It analyzes the agent's interaction logic, tool usage, investigation quality, and diagnostic correctness to yield a strict dynamically-ranged score between 0.0 and 1.0.
+The official Phase 2 OpenEnv platform evaluates trajectories directly via its internal LLM, reading `openenv.yaml`. It analyzes the agent's interaction logic, tool usage, investigation quality, and diagnostic correctness to yield a strict dynamically-ranged score between 0.01 and 0.99.
 
 **2. Local Testing Grader (`grader.py`)**
 For high-speed baseline testing, evaluation runs securely via a hardcoded deterministic Python system without pinging LLMs. It compares structural diagnosis against the exact scenario ground truth.
@@ -168,14 +168,14 @@ For high-speed baseline testing, evaluation runs securely via a hardcoded determ
 
 ## Score Distribution
 
-To abide by platform rules against purely discrete perfect/failure matrices, we restrict scores strictly within [0.0, 1.0]:
+To abide by platform rules against purely discrete perfect/failure matrices, we restrict scores strictly within [0.01, 0.99]:
 
 | Agent Quality | Score Range |
 |---|---|
-| Incorrect (random/guessing) | 0.00 – 0.40 |
+| Incorrect (random/guessing) | 0.01 – 0.40 |
 | Partial (finds service, wrong cause) | 0.45 – 0.60 |
 | Correct but Inefficient (poor tools) | 0.65 – 0.80 |
-| Excellent (correct + cause + efficient) | 0.85 – 1.00 |
+| Excellent (correct + cause + efficient) | 0.85 – 0.99 |
 
 ## Design Principles
 

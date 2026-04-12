@@ -24,9 +24,9 @@ HF_TOKEN = os.getenv("HF_TOKEN", "")
 SEED = int(os.getenv("SEED", "42"))
 ENV_NAME = "incident-rca-env"
 
-# Score constants — standard range 0.0 to 1.0
-SCORE_MIN = 0.0
-SCORE_MAX = 1.0
+# Score constants — validator strict range
+SCORE_MIN = 0.01
+SCORE_MAX = 0.99
 
 
 # Logging helpers (flush=True on every call)
@@ -268,10 +268,14 @@ def main():
         try:
             score = grader.grade(env)
         except Exception:
-            score = 0.0
+            score = 0.01
             
-        # Ensure score is within valid range
-        score = max(SCORE_MIN, min(SCORE_MAX, float(score)))
+        # Ensure score is within valid range strictly
+        score = float(score)
+        if score <= 0.0:
+            score = 0.01
+        elif score >= 1.0:
+            score = 0.99
 
         success = score >= 0.60
         log_end(
@@ -281,7 +285,7 @@ def main():
             rewards=rewards,
         )
 
-    print("\nALL TASKS EXECUTED + GRADER FIXED")
+    print("\nSCORES STRICTLY WITHIN (0,1)")
 
 
 if __name__ == "__main__":
