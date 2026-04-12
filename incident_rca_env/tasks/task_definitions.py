@@ -68,7 +68,7 @@ def _load_tasks_from_openenv() -> dict[str, dict]:
             + "\n".join(str(p) for p in possible_paths)
         )
 
-    print(f"[DEBUG] Loading openenv.yaml from: {cfg_path}")
+
 
     cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
 

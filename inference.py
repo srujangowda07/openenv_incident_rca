@@ -130,7 +130,7 @@ def _build_prompt(obs: dict, step: int) -> str:
     )
 
 
-# ─── LLM client ──────────────────────────────────────────────────────────────
+# LLM client 
 class ParseError(ValueError):
     pass
 
@@ -148,14 +148,14 @@ def _call_llm(messages: list[dict]) -> str:
     _validate_config()
     client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN, timeout=30.0)
     last_err = None
-    backoff = 2.0
-    for i in range(7):  # Increased to 7 retries for high-load periods
+    backoff = 5.0
+    for i in range(10):  
         try:
             resp = client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=messages,
                 temperature=0.1,
-                max_tokens=256,  # Increased for complex reasoning
+                max_tokens=256,  
             )
             return resp.choices[0].message.content
         except Exception as e:
@@ -165,7 +165,7 @@ def _call_llm(messages: list[dict]) -> str:
                 backoff *= 2.0
             else:
                 time.sleep(2.0)
-    raise RuntimeError(f"LLM call failed after 7 retries: {last_err}")
+    raise RuntimeError(f"LLM call failed after 10 retries: {last_err}")
 
 
 def _parse_action(raw: str) -> ActionModel:
@@ -216,8 +216,27 @@ def _format_action_str(action: ActionModel) -> str:
     return f"{action.action_type}({parts})"
 
 
+def _get_selected_tasks(all_tasks: list[dict]) -> list[dict]:
+    max_tasks_env = os.getenv("MAX_TASKS")
+    if max_tasks_env:
+        try:
+            limit = int(max_tasks_env)
+            return all_tasks[:limit]
+        except ValueError:
+            pass
+
+    # Default balanced selection: 3 Easy, 2 Medium, 2 Hard
+    easy_tasks = [t for t in all_tasks if t["difficulty"] == "easy"][:3]
+    medium_tasks = [t for t in all_tasks if t["difficulty"] == "medium"][:2]
+    hard_tasks = [t for t in all_tasks if t["difficulty"] == "hard"][:2]
+    
+    selected = easy_tasks + medium_tasks + hard_tasks
+    return selected
+
+
 def main():
-    tasks = list_tasks()
+    all_tasks = list_tasks()
+    tasks = _get_selected_tasks(all_tasks)
     grader = IncidentRCAGrader()
 
     for task in tasks:
@@ -233,6 +252,7 @@ def main():
 
         step = 0
         done = False
+        info = None
 
         try:
             for step in range(1, task.get("max_steps", 25) + 1):
@@ -255,8 +275,9 @@ def main():
 
                 reward_val = getattr(reward, "total", 0.0)
                 rewards.append(reward_val)
+                action_str = _format_action_str(action)
 
-                log_step(step, _format_action_str(action), reward_val, done, None)
+                log_step(step, action_str, reward_val, done, None)
 
                 if done:
                     break
@@ -274,9 +295,9 @@ def main():
         score = float(score)
         if score <= 0.0:
             score = 0.01
-        elif score >= 1.0:
+        if score >= 1.0:
             score = 0.99
-
+            
         success = score >= 0.60
         log_end(
             success=success,
@@ -284,8 +305,6 @@ def main():
             score=score,
             rewards=rewards,
         )
-
-    print("\nSCORES STRICTLY WITHIN (0,1)")
 
 
 if __name__ == "__main__":

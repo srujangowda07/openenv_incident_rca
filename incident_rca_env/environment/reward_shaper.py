@@ -11,7 +11,7 @@ REWARD_TABLE: dict[str, float] = {
     "correct_dependency_step": +0.05,  # queried a service in the cascade (not root)
     "useful_exploration": +0.05,  # trace implicates root cause but service already seen
     "wrong_direction": -0.05,  # queried a service outside the cascade
-    "repeated_action": -0.10,  # exact same tool call repeated
+    "repeated_action": -0.15,  # exact same tool call repeated
     "invalid_action": -0.10,  # missing required param or unknown service
     "step_penalty": -0.01,  # applied every step as efficiency incentive
 }
@@ -75,7 +75,7 @@ class RewardShaper:
                         f"trace reached root cause service: {rca_norm}",
                     )
 
-            if self.exploration_rewards_count < 2:
+            if self.exploration_rewards_count < 4:
                 self.exploration_rewards_count += 1
                 v = REWARD_TABLE["useful_exploration"]
                 return (

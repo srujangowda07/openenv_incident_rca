@@ -50,6 +50,7 @@ class IncidentRCAGrader:
                     inner_env = env._env
                     episode = {
                         "scenario": getattr(inner_env, "_scenario", {}),
+                        "task_id": getattr(inner_env, "task_id", ""),
                         "final_state": inner_env.state(),
                         "info": inner_env._build_info(done=True).model_dump()
                         if hasattr(inner_env, "_build_info")
@@ -59,6 +60,7 @@ class IncidentRCAGrader:
                     # Might be the inner IncidentRCAEnv directly
                     episode = {
                         "scenario": getattr(env, "_scenario", {}),
+                        "task_id": getattr(env, "task_id", ""),
                         "final_state": env.state(),
                         "info": env._build_info(done=True).model_dump()
                         if hasattr(env, "_build_info")
@@ -76,7 +78,29 @@ class IncidentRCAGrader:
         breakdown["penalties"] = self._score_penalties(episode)
 
         raw_total = sum(breakdown.values())
-        score = float(raw_total)
+        base_score = float(raw_total)
+
+        info = episode.get("info", {}) or {}
+        steps = info.get("steps_taken", 1)
+        task_id = episode.get("task_id", "")
+
+        optimal_steps_map = {
+            "easy": 4,
+            "medium": 6,
+            "hard": 8,
+        }
+
+        difficulty = "easy"
+        if "medium" in str(task_id):
+            difficulty = "medium"
+        elif "hard" in str(task_id):
+            difficulty = "hard"
+
+        optimal_steps = optimal_steps_map[difficulty]
+        efficiency = optimal_steps / max(steps, optimal_steps)
+        efficiency = min(1.0, efficiency)
+
+        score = base_score * 0.85 + efficiency * 0.15
 
         if score <= 0.0:
             score = 0.01

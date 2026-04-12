@@ -6,141 +6,124 @@ app: server.app:app
 port: 7860
 tasks:
 - id: easy_001
-  name: easy_001
+  name: Postgres Pool Exhaustion
   difficulty: easy
-  description: api-gateway 502 errors caused by postgres connection pool exhaustion
+  description: API Gateway 502 errors caused by postgres connection pool exhaustion.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident easy_001. Ground Truth Solution: service='postgres-primary', cause='connection pool exhausted'. Scoring Logic: If root_cause_service is 'postgres-primary' AND cause_type is 'connection pool exhausted', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: easy_002
-  name: easy_002
+  name: Payment Service OOM
   difficulty: easy
-  description: payment-service pods crashing due to memory leak in unbounded cache
+  description: payment-service pods crashing due to memory leak in unbounded cache.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident easy_002. Ground Truth Solution: service='payment-service', cause='memory leak OOMKilled'. Scoring Logic: If root_cause_service is 'payment-service' AND cause_type is 'memory leak OOMKilled', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: easy_003
-  name: easy_003
+  name: Logging Disk Full
   difficulty: easy
-  description: logging-service down because disk full and log rotation disabled
+  description: logging-service down because disk full and log rotation disabled.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident easy_003. Ground Truth Solution: service='logging-service', cause='disk full no log rotation'. Scoring Logic: If root_cause_service is 'logging-service' AND cause_type is 'disk full no log rotation', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: easy_004
-  name: easy_004
+  name: Redis Corruption
   difficulty: easy
-  description: Redis container crash loop causing cache failures
+  description: Redis container crash loop causing cache failures due to file corruption.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident easy_004. Ground Truth Solution: service='redis-cache', cause='persistence file corruption'. Scoring Logic: If root_cause_service is 'redis-cache' AND cause_type is 'persistence file corruption', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: easy_005
-  name: easy_005
+  name: Storage Node Capacity
   difficulty: easy
-  description: storage-node-3 disk capacity 100% due to cleanup job failure
+  description: storage-node-3 disk capacity 100% due to cleanup job failure.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident easy_005. Ground Truth Solution: service='storage-node-3', cause='unbounded temporary files'. Scoring Logic: If root_cause_service is 'storage-node-3' AND cause_type is 'unbounded temporary files', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: easy_006
-  name: easy_006
+  name: Auth Service Port Mismatch
   difficulty: easy
-  description: auth-service unreachable due to targetPort mismatch in k8s service
+  description: auth-service unreachable due to targetPort mismatch in k8s service.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident easy_006. Ground Truth Solution: service='auth-service', cause='port misconfiguration'. Scoring Logic: If root_cause_service is 'auth-service' AND cause_type is 'port misconfiguration', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: easy_007
-  name: easy_007
+  name: Billing DB Auth Failure
   difficulty: easy
-  description: billing-service DB authentication failure due to rotated password
+  description: billing-service DB authentication failure due to rotated password.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident easy_007. Ground Truth Solution: service='billing-service', cause='database credentials failure'. Scoring Logic: If root_cause_service is 'billing-service' AND cause_type is 'database credentials failure', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: medium_001
-  name: medium_001
+  name: Missing DB Index
   difficulty: medium
-  description: schema migration dropped DB index causing service cascade
+  description: schema migration dropped DB index causing service latency cascade.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident medium_001. Ground Truth Solution: service='mysql-repl', cause='missing index slow query'. Scoring Logic: If root_cause_service is 'mysql-repl' AND cause_type is 'missing index slow query', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: medium_002
-  name: medium_002
+  name: Heavy Load Pool Exhaustion
   difficulty: medium
-  description: database connection pool exhaustion under heavy load
+  description: database connection pool exhaustion under sudden heavy traffic load.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident medium_002. Ground Truth Solution: service='order-service', cause='connection pool exhaustion'. Scoring Logic: If root_cause_service is 'order-service' AND cause_type is 'connection pool exhaustion', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: medium_003
-  name: medium_003
+  name: Rec-Engine Memory Leak
   difficulty: medium
-  description: memory leak in recommendation engine causing degradation
+  description: steady heap growth in recommendation engine causing degradation.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident medium_003. Ground Truth Solution: service='recommendation-engine', cause='memory leak OOMKilled'. Scoring Logic: If root_cause_service is 'recommendation-engine' AND cause_type is 'memory leak OOMKilled', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: medium_004
-  name: medium_004
+  name: Gateway TLS Expiry
   difficulty: medium
-  description: TLS certificate expired causing handshake failures
+  description: api-gateway TLS certificate expired causing handshake failures.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident medium_004. Ground Truth Solution: service='api-gateway', cause='tls certificate expiry'. Scoring Logic: If root_cause_service is 'api-gateway' AND cause_type is 'tls certificate expiry', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: medium_005
-  name: medium_005
+  name: Internal Proxy DNS Failure
   difficulty: medium
-  description: DNS resolution failure due to CoreDNS corruption
+  description: internal-proxy DNS resolution failure due to CoreDNS corruption.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident medium_005. Ground Truth Solution: service='internal-proxy', cause='dns misconfiguration'. Scoring Logic: If root_cause_service is 'internal-proxy' AND cause_type is 'dns misconfiguration', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: hard_001
-  name: hard_001
+  name: Redis Split-Brain
   difficulty: hard
-  description: Redis cluster split-brain due to network partition
+  description: Redis cluster split-brain caused by network partition in rack-A.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident hard_001. Ground Truth Solution: service='redis-cluster', cause='cluster split-brain 2 nodes network partition'. Scoring Logic: If root_cause_service is 'redis-cluster' AND cause_type is 'cluster split-brain 2 nodes network partition', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: hard_002
-  name: hard_002
+  name: MySQL Index Corruption
   difficulty: hard
-  description: InnoDB index corruption causing data inconsistency
+  description: InnoDB index corruption causing data inconsistency in report-svc.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident hard_002. Ground Truth Solution: service='mysql-repl', cause='index corruption'. Scoring Logic: If root_cause_service is 'mysql-repl' AND cause_type is 'index corruption', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: hard_003
-  name: hard_003
+  name: Etcd Split-Brain
   difficulty: hard
-  description: distributed etcd split-brain due to network partition
+  description: distributed etcd split-brain due to network partition.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident hard_003. Ground Truth Solution: service='etcd', cause='cluster split-brain 2 nodes network partition'. Scoring Logic: If root_cause_service is 'etcd' AND cause_type is 'cluster split-brain 2 nodes network partition', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: hard_004
-  name: hard_004
+  name: Mesh Config Drift
   difficulty: hard
-  description: Istio configuration drift causing routing inconsistency
+  description: Istio configuration drift causing routing inconsistency in k8s-mesh.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident hard_004. Ground Truth Solution: service='istio-pilot', cause='config drift'. Scoring Logic: If root_cause_service is 'istio-pilot' AND cause_type is 'config drift', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 - id: hard_005
-  name: hard_005
+  name: Global Rate Limiter Overflow
   difficulty: hard
-  description: global rate limiter dropping valid traffic due to overflow
+  description: global-throttle-service dropping valid traffic due to overflow error.
   grader:
     type: llm
-    prompt_template: Score the agent 0.9 if fully correct, 0.5 if partially correct,
-      0.1 otherwise. Output only a number.
+    prompt_template: "Evaluate the agent diagnosis for incident hard_005. Ground Truth Solution: service='global-throttle-service', cause='rate limiter failure'. Scoring Logic: If root_cause_service is 'global-throttle-service' AND cause_type is 'rate limiter failure', score 0.95. If service matches but cause is wrong, score 0.70. If service is mentioned in logs/traces but diagnostic is wrong, score 0.30. Otherwise, score 0.05. Output ONLY a float between 0 and 1."
 version: 1.0.0
 observation_space:
   type: json

@@ -441,11 +441,11 @@ class ScenarioGenerator:
             ],
             "traces": {},
             "root_cause": {
-                "service": "billing-db",
+                "service": "billing-service",
                 "cause_type": "database credentials failure",
                 "trigger": "password rotation without updating secret",
                 "valid_fixes": ["update kubernetes secret", "rollback password change"],
-                "cascade": ["billing-db", "billing-service"],
+                "cascade": ["billing-service"],
             },
         }
 
@@ -465,22 +465,22 @@ class ScenarioGenerator:
                 }
             ],
             "services": [
-                {"name": "search-api", "status": "degraded", "calls": ["mysql"]},
-                {"name": "mysql", "status": "degraded", "calls": []},
+                {"name": "search-api", "status": "degraded", "calls": ["mysql-repl"]},
+                {"name": "mysql-repl", "status": "degraded", "calls": []},
             ],
-            "dependency_graph": {"search-api": ["mysql"], "mysql": []},
+            "dependency_graph": {"search-api": ["mysql-repl"], "mysql-repl": []},
             "logs": [
                 self._log(
                     base,
                     0,
-                    "mysql",
+                    "mysql-repl",
                     "WARN",
                     "Slow query: 12000ms SELECT * FROM items WHERE tags LIKE '%X%'",
                 )
             ],
             "metrics": [
                 {
-                    "service": "mysql",
+                    "service": "mysql-repl",
                     "metric": "cpu_util",
                     "values": [20, 80, 95],
                     "unit": "percent",
@@ -488,14 +488,14 @@ class ScenarioGenerator:
                 }
             ],
             "traces": {
-                "t-1": [{"service": "mysql", "duration_ms": 12000, "status": "slow"}]
+                "t-1": [{"service": "mysql-repl", "duration_ms": 12000, "status": "slow"}]
             },
             "root_cause": {
-                "service": "mysql",
+                "service": "mysql-repl",
                 "cause_type": "missing index slow query",
                 "trigger": "new feature filtering on non-indexed tags",
                 "valid_fixes": ["add index", "rewrite query"],
-                "cascade": ["mysql", "search-api"],
+                "cascade": ["mysql-repl", "search-api"],
             },
         }
 
@@ -905,29 +905,29 @@ class ScenarioGenerator:
             "alerts": [
                 {
                     "id": "ALT-001",
-                    "service": "throttle-svc",
+                    "service": "global-throttle-service",
                     "severity": "critical",
                     "message": "429 rate > 50%",
                     "time": "11:05:00",
                 }
             ],
             "services": [
-                {"name": "ingress", "status": "degraded", "calls": ["throttle-svc"]},
-                {"name": "throttle-svc", "status": "unhealthy", "calls": []},
+                {"name": "ingress", "status": "degraded", "calls": ["global-throttle-service"]},
+                {"name": "global-throttle-service", "status": "unhealthy", "calls": []},
             ],
-            "dependency_graph": {"ingress": ["throttle-svc"], "throttle-svc": []},
+            "dependency_graph": {"ingress": ["global-throttle-service"], "global-throttle-service": []},
             "logs": [
                 self._log(
                     base,
                     0,
-                    "throttle-svc",
+                    "global-throttle-service",
                     "ERROR",
                     "Rate-limiting logic error: bucket negative overflow",
                 )
             ],
             "metrics": [
                 {
-                    "service": "throttle-svc",
+                    "service": "global-throttle-service",
                     "metric": "throttle_rate",
                     "values": [0, 50, 95],
                     "unit": "percent",
@@ -936,11 +936,11 @@ class ScenarioGenerator:
             ],
             "traces": {},
             "root_cause": {
-                "service": "throttle-svc",
+                "service": "global-throttle-service",
                 "cause_type": "rate limiter failure",
                 "trigger": "integer overflow in token bucket math",
                 "valid_fixes": ["hotfix overflow logic", "bypass throttle-svc"],
-                "cascade": ["throttle-svc", "ingress"],
+                "cascade": ["global-throttle-service", "ingress"],
             },
         }
 
